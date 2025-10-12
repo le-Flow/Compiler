@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		},
+		{
+			"path": "../../../../../../../media/adam-wagner/Windows/Users/adamw/OneDrive/Desktop/Informatik/Informatik_7._Semester/Compiler"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.jlex": "jflex"
+		},
+		"java.project.referencedLibraries": [
+			"lib/**/*.jar",
+			"ib610/jars/java-cup-11b-runtime.jar",
+			"ib610/jars/java-cup-11b.jar"
+		]
+	}
+}

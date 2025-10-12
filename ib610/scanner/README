@@ -1,0 +1,38 @@
+Quickstart:
+
+1. type
+   make <enter>
+
+   this build the scanner and the P2 driver Java application
+
+2. type
+   make test <enter>
+   this runs the P2 driver program on test.sim
+
+This will produce an error like
+1:1 INTLITERAL (10)
+Exception in thread "main" java.lang.Error: Error: could not match input
+	at Yylex.zzScanError(simple.jlex.java:463)
+	at Yylex.next_token(simple.jlex.java:659)
+	at P2.main(P2.java:48)
+
+
+this is expected: YOU HAVE TO IMPLEMENT THE SIMPLE LANGUAGE LEXICAL
+SPECIFICATION BY MODIFYING simple.jlex
+Once your specification is correct make test must work.
+
+Note: you definitely want to use additional test.sim test programs to
+test your scanner!
+
+Also: you must change P2.java so that all tokens of the language with
+their attributes get printed out when running P2.
+
+
+
+HOW TO SUBMIT:
+once everything works, type
+make submit
+to create a zip file of your work and upload it to Moodle.
+Check that unzipping and typing make works correctly from a clean
+directory.
+

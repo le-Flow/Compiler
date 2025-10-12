@@ -1,0 +1,4 @@
+public class Test {
+   static int x;
+   static int y;
+}
