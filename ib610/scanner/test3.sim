@@ -1,0 +1,22 @@
+/*
+ß
+|
+^
+*/
+
+public class Gaming {
+    public static int x = 9 + 2 - 1;
+    boolean print = false;
+    String lit = "Hello &!# \n test";
+    
+    public static void method(int start, boolean noPrint) {
+        // countdown §$ß
+        for(int k = x; k >= 0) {
+            if (print) {
+                System.out.println(k - 1)
+            }
+        }
+    }
+}
+
+// Tabs

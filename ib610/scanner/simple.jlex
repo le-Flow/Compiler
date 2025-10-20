@@ -15,7 +15,7 @@ class TokenVal {
  // constructor
     TokenVal(int l, int c) {
         linenum = l;
-	charnum = c;
+    charnum = c;
     }
 }
 
@@ -25,7 +25,7 @@ class IntLitTokenVal extends TokenVal {
  // constructor
     IntLitTokenVal(int l, int c, int val) {
         super(l,c);
-	intVal = val;
+    intVal = val;
     }
 }
 
@@ -37,14 +37,23 @@ class CharNum {
 }
 %%
 
-DIGIT=		[0-9]
-WHITESPACE=	[\ \t\n]
+QUOTE_CHARS = [\"\“\”]
+EscapeChar = [n t \' \\ {QUOTE_CHARS}]
+EscapeSeq  = \\ {EscapeChar}
+StringChar = [^\\n\\{QUOTE_CHARS}]
+NON_NEWLINE_CHAR = [^\r\n]
+DIGIT=      [0-9]
+LETTER=     [a-zA-Z]
+ID = {LETTER} ({LETTER}|{DIGIT}|"_")*
+INTLITERAL = {DIGIT}+
+STRINGLITERAL = {QUOTE_CHARS} ( {EscapeSeq} | {StringChar} )* {QUOTE_CHARS}
 
-// The next 3 lines are included so that we can use the generated scanner
-// with java CUP (the Java parser generator)
 %implements java_cup.runtime.Scanner
 %function next_token
 %type java_cup.runtime.Symbol
+
+// Define the state for multiline comments
+%state IN_COMMENT
 
 // Tell JLex what to do on end-of-file
 %eofval{
@@ -56,24 +65,112 @@ return new Symbol(sym.EOF);
 
 %%
 
-{DIGIT}+   {// NOTE: the following computation of the integer value does NOT
-	    //       check for overflow.  This must be changed.
-	    int val = (new Integer(yytext())).intValue();
-	    Symbol S = new Symbol(sym.INTLITERAL,
-			          new IntLitTokenVal(yyline+1, CharNum.num, val)
-				 );
-	    CharNum.num += yytext().length();
-	    return S;
-	   }
+<YYINITIAL> {
+    // Single-line Comments
+    "//" [^\r\n]* { /* ignore */ }
+    
+    // Multiline Comments - Transition to IN_COMMENT state
+    "/*" { CharNum.num += 2; yybegin(IN_COMMENT); }
 
-{WHITESPACE}+  {CharNum.num += yytext().length();}
+    \r?\n       { CharNum.num = 1; }
 
-"+"	   {Symbol S = new Symbol(sym.PLUS, new TokenVal(yyline+1, CharNum.num));
-	    CharNum.num++;
-	    return S;
-	   }
-	    
-.	   {Errors.fatal(yyline+1, CharNum.num,
-			 "ignoring illegal character: " + yytext());
-	    CharNum.num++;
-	   }
+    // Reserved Words (Keywords) 
+    "System.out.println"   { return new Symbol(sym.PRINT, new TokenVal(yyline+1, CharNum.num)); }
+    "String"    { return new Symbol(sym.STRING, new TokenVal(yyline+1, CharNum.num)); }
+    "boolean"   { return new Symbol(sym.BOOLEAN, new TokenVal(yyline+1, CharNum.num)); }
+    "class"     { return new Symbol(sym.CLASS, new TokenVal(yyline+1, CharNum.num)); }
+    "do"        { return new Symbol(sym.DO, new TokenVal(yyline+1, CharNum.num)); }
+    "else"      { return new Symbol(sym.ELSE, new TokenVal(yyline+1, CharNum.num)); }
+    "false"     { return new Symbol(sym.FALSE, new TokenVal(yyline+1, CharNum.num)); }
+    "if"        { return new Symbol(sym.IF, new TokenVal(yyline+1, CharNum.num)); }
+    "int"       { return new Symbol(sym.INT, new TokenVal(yyline+1, CharNum.num)); }
+    "public"    { return new Symbol(sym.PUBLIC, new TokenVal(yyline+1, CharNum.num)); }
+    "return"    { return new Symbol(sym.RETURN, new TokenVal(yyline+1, CharNum.num)); }
+    "static"    { return new Symbol(sym.STATIC, new TokenVal(yyline+1, CharNum.num)); }
+    "true"      { return new Symbol(sym.TRUE, new TokenVal(yyline+1, CharNum.num)); }
+    "void"      { return new Symbol(sym.VOID, new TokenVal(yyline+1, CharNum.num)); }
+    "while"     { return new Symbol(sym.WHILE, new TokenVal(yyline+1, CharNum.num)); }
+
+    // Integer Literal
+    {INTLITERAL} { 
+        int startCol = CharNum.num;
+        int val = (new Integer(yytext())).intValue();
+        CharNum.num += yytext().length();
+        Symbol S = new Symbol(sym.INTLITERAL,
+                      new IntLitTokenVal(yyline+1, startCol, val)
+                 );
+        return S;
+    }
+
+    // String Literal
+    {STRINGLITERAL} { 
+        int startCol = CharNum.num;
+        CharNum.num += yytext().length();
+        return new Symbol(sym.STRINGLITERAL, new TokenVal(yyline+1, startCol)); 
+    }
+
+    // Identifier
+    {ID} { 
+        int startCol = CharNum.num;
+        CharNum.num += yytext().length();
+        return new Symbol(sym.ID, new TokenVal(yyline+1, startCol));
+    }
+    
+    // Whitespace
+    [ \t]+      { CharNum.num += yytext().length(); }
+    
+    // Operators/Separators
+    "+"    { CharNum.num++; return new Symbol(sym.PLUS, new TokenVal(yyline+1, CharNum.num - 1)); }
+    "-"    { CharNum.num++; return new Symbol(sym.MINUS, new TokenVal(yyline+1, CharNum.num - 1)); }
+    "*"    { CharNum.num++; return new Symbol(sym.TIMES, new TokenVal(yyline+1, CharNum.num - 1)); }
+    "/"    { CharNum.num++; return new Symbol(sym.DIVIDE, new TokenVal(yyline+1, CharNum.num - 1)); }
+
+    "=="   { CharNum.num += 2; return new Symbol(sym.EQUALS, new TokenVal(yyline+1, CharNum.num - 2)); }
+    "!="   { CharNum.num += 2; return new Symbol(sym.NOTEQUALS, new TokenVal(yyline+1, CharNum.num - 2)); }
+    "<="   { CharNum.num += 2; return new Symbol(sym.LESSEQ, new TokenVal(yyline+1, CharNum.num - 2)); }
+    ">="   { CharNum.num += 2; return new Symbol(sym.GREATEREQ, new TokenVal(yyline+1, CharNum.num - 2)); }
+    "&&"   { CharNum.num += 2; return new Symbol(sym.AND, new TokenVal(yyline+1, CharNum.num - 2)); }
+    "||"   { CharNum.num += 2; return new Symbol(sym.OR, new TokenVal(yyline+1, CharNum.num - 2)); }
+    "{"    { CharNum.num++; return new Symbol(sym.LCURLY, new TokenVal(yyline+1, CharNum.num - 1)); }
+    "}"    { CharNum.num++; return new Symbol(sym.RCURLY, new TokenVal(yyline+1, CharNum.num - 1)); }
+    "("    { CharNum.num++; return new Symbol(sym.LPAREN, new TokenVal(yyline+1, CharNum.num - 1)); }
+    ")"    { CharNum.num++; return new Symbol(sym.RPAREN, new TokenVal(yyline+1, CharNum.num - 1)); }
+    ","    { CharNum.num++; return new Symbol(sym.COMMA, new TokenVal(yyline+1, CharNum.num - 1)); }
+    "="    { CharNum.num++; return new Symbol(sym.ASSIGN, new TokenVal(yyline+1, CharNum.num - 1)); }
+    ";"    { CharNum.num++; return new Symbol(sym.SEMICOLON, new TokenVal(yyline+1, CharNum.num - 1)); }
+    "!"    { CharNum.num++; return new Symbol(sym.NOT, new TokenVal(yyline+1, CharNum.num - 1)); }
+    "<"    { CharNum.num++; return new Symbol(sym.LESS, new TokenVal(yyline+1, CharNum.num - 1)); }
+    ">"    { CharNum.num++; return new Symbol(sym.GREATER, new TokenVal(yyline+1, CharNum.num - 1)); }
+        
+    // Error Handling
+    .      {
+        Errors.fatal(yyline+1, CharNum.num,
+             "ignoring illegal character: " + yytext());
+        CharNum.num++;
+    }
+}
+
+// Rules for the IN_COMMENT state
+<IN_COMMENT> {
+    // End of multiline comment: return to the initial state
+    "*/" { CharNum.num += 2; yybegin(YYINITIAL); }
+
+    // Newline/Carriage Return inside a comment: reset character counter
+    \r?\n { CharNum.num = 1; }
+
+    // Consume any sequence of characters that does not contain a newline or '*'
+    [^\r\n\*]+ { CharNum.num += yytext().length(); }
+
+    // Consume an isolated '*' (not followed by '/')
+    "*" { CharNum.num++; }
+
+    // Consume an isolated '/'
+    "/" { CharNum.num++; }
+    
+    // Error: End of file before closing comment
+    <<EOF>> {
+        Errors.fatal(yyline+1, CharNum.num,
+             "unterminated multiline comment");
+        yybegin(YYINITIAL);
+    }
+}

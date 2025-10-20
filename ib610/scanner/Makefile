@@ -45,6 +45,18 @@ test:	test.sim P2.class
 	@echo "Modify the simple.jlex specification to implement the language!"
 	java -cp $(CLASSPATH) P2 test.sim
 
+test2:	test2.sim P2.class
+	@echo "If you get an error below your Scanner does not work yet!"
+	@echo "Modify the simple.jlex specification to implement the language!"
+	java -cp $(CLASSPATH) P2 test2.sim
+
+test3:	test3.sim P2.class
+	@echo "If you get an error below your Scanner does not work yet!"
+	@echo "Modify the simple.jlex specification to implement the language!"
+	java -cp $(CLASSPATH) P2 test3.sim
+
+
+
 
 ###
 # handout
