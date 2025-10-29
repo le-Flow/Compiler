@@ -1,4 +1,4 @@
-import java_cup.runtime.*; // defines the Symbol class
+import java_cup.runtime.*; 
 
 // The generated scanner will return a Symbol for each token that it finds.
 // A Symbol contains an Object field named value; that field will be of type
@@ -37,30 +37,30 @@ class CharNum {
 }
 %%
 
-QUOTE_CHARS = [\"\“\”]
-EscapeChar = [n t \' \\ {QUOTE_CHARS}]
-EscapeSeq  = \\ {EscapeChar}
-StringChar = [^\\n\\{QUOTE_CHARS}]
-NON_NEWLINE_CHAR = [^\r\n]
-DIGIT=      [0-9]
-LETTER=     [a-zA-Z]
+QUOTE_START = [\"\“]
+QUOTE_END = [\"\”]
+
+EscapeChar = [nt\'\\\"\“\”]
+EscapeSeq = \\{EscapeChar}
+StringChar = [^\\\n\"\“\”]
+
+DIGIT= [0-9]
+LETTER= [a-zA-Z]
 ID = {LETTER} ({LETTER}|{DIGIT}|"_")*
 INTLITERAL = {DIGIT}+
-STRINGLITERAL = {QUOTE_CHARS} ( {EscapeSeq} | {StringChar} )* {QUOTE_CHARS}
+
+STRINGLITERAL = {QUOTE_START}({EscapeSeq}|{StringChar})*{QUOTE_END}
 
 %implements java_cup.runtime.Scanner
 %function next_token
 %type java_cup.runtime.Symbol
 
-// Define the state for multiline comments
 %state IN_COMMENT
 
-// Tell JLex what to do on end-of-file
 %eofval{
 return new Symbol(sym.EOF);
 %eofval}
 
-// Turn on line counting
 %line
 
 %%
@@ -92,9 +92,9 @@ return new Symbol(sym.EOF);
     "while"     { return new Symbol(sym.WHILE, new TokenVal(yyline+1, CharNum.num)); }
 
     // Integer Literal
-    {INTLITERAL} { 
+    {INTLITERAL} {
         int startCol = CharNum.num;
-        int val = (new Integer(yytext())).intValue();
+        int val = Integer.parseInt(yytext()); 
         CharNum.num += yytext().length();
         Symbol S = new Symbol(sym.INTLITERAL,
                       new IntLitTokenVal(yyline+1, startCol, val)
