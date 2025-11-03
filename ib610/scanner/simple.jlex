@@ -25,7 +25,17 @@ class IntLitTokenVal extends TokenVal {
  // constructor
     IntLitTokenVal(int l, int c, int val) {
         super(l,c);
-    intVal = val;
+        this.intVal = val;
+    }
+}
+
+class StringLitTokenVal extends TokenVal {
+ // new field: the value of the string literal
+    String stringVal;
+ // constructor
+    StringLitTokenVal(int l, int c, String val) {
+        super(l,c);
+        this.stringVal = val; // Store the processed string value
     }
 }
 
@@ -94,19 +104,54 @@ return new Symbol(sym.EOF);
     // Integer Literal
     {INTLITERAL} {
         int startCol = CharNum.num;
-        int val = Integer.parseInt(yytext()); 
-        CharNum.num += yytext().length();
-        Symbol S = new Symbol(sym.INTLITERAL,
-                      new IntLitTokenVal(yyline+1, startCol, val)
-                 );
-        return S;
+        String text = yytext();
+        CharNum.num += text.length();
+
+        try {
+            int val = Integer.parseInt(text); 
+            Symbol S = new Symbol(sym.INTLITERAL,
+                          new IntLitTokenVal(yyline+1, startCol, val)
+                     );
+            return S;
+        } catch (NumberFormatException e) {
+            Errors.fatal(yyline+1, startCol, 
+                         "integer literal too large: " + text);
+        }
     }
 
     // String Literal
     {STRINGLITERAL} { 
         int startCol = CharNum.num;
-        CharNum.num += yytext().length();
-        return new Symbol(sym.STRINGLITERAL, new TokenVal(yyline+1, startCol)); 
+        String rawText = yytext();
+        CharNum.num += rawText.length();
+        
+        // Process the string: remove quotes and handle escapes
+        String innerVal = rawText.substring(1, rawText.length() - 1);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < innerVal.length(); i++) {
+            char c = innerVal.charAt(i);
+            if (c == '\\' && i + 1 < innerVal.length()) {
+                char next = innerVal.charAt(i + 1);
+                switch (next) {
+                    case 'n': sb.append('\n'); break;
+                    case 't': sb.append('\t'); break;
+                    case '\\': sb.append('\\'); break;
+                    case '\"': sb.append('\"'); break;
+                    case '\'': sb.append('\''); break;
+                    case '\u201C': sb.append('\u201C'); break; // “
+                    case '\u201D': sb.append('\u201D'); break; // ”
+                    default:
+                        sb.append(next);
+                }
+                i++; 
+            } else {
+                sb.append(c);
+            }
+        }
+        String processedVal = sb.toString();
+
+        return new Symbol(sym.STRINGLITERAL, 
+                          new StringLitTokenVal(yyline+1, startCol, processedVal)); 
     }
 
     // Identifier
@@ -152,22 +197,12 @@ return new Symbol(sym.EOF);
 
 // Rules for the IN_COMMENT state
 <IN_COMMENT> {
-    // End of multiline comment: return to the initial state
     "*/" { CharNum.num += 2; yybegin(YYINITIAL); }
-
-    // Newline/Carriage Return inside a comment: reset character counter
     \r?\n { CharNum.num = 1; }
-
-    // Consume any sequence of characters that does not contain a newline or '*'
     [^\r\n\*]+ { CharNum.num += yytext().length(); }
-
-    // Consume an isolated '*' (not followed by '/')
     "*" { CharNum.num++; }
-
-    // Consume an isolated '/'
     "/" { CharNum.num++; }
-    
-    // Error: End of file before closing comment
+
     <<EOF>> {
         Errors.fatal(yyline+1, CharNum.num,
              "unterminated multiline comment");

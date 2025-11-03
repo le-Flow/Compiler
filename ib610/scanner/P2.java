@@ -43,7 +43,9 @@ public class P2 {
                                            ")");
                         break;
                     case sym.STRINGLITERAL:
-                        System.out.println("STRINGLITERAL");
+                        System.out.println("STRINGLITERAL (\"" +
+                                           ((StringLitTokenVal)token.value).stringVal +
+                                           "\")");
                         break;
                     case sym.ID:
                         System.out.println("ID");

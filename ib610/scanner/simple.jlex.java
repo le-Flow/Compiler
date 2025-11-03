@@ -29,7 +29,17 @@ class IntLitTokenVal extends TokenVal {
  // constructor
     IntLitTokenVal(int l, int c, int val) {
         super(l,c);
-    intVal = val;
+        this.intVal = val;
+    }
+}
+
+class StringLitTokenVal extends TokenVal {
+ // new field: the value of the string literal
+    String stringVal;
+ // constructor
+    StringLitTokenVal(int l, int c, String val) {
+        super(l,c);
+        this.stringVal = val; // Store the processed string value
     }
 }
 
@@ -886,12 +896,19 @@ class Yylex implements java_cup.runtime.Scanner {
           case 56: break;
           case 12:
             { int startCol = CharNum.num;
-        int val = Integer.parseInt(yytext()); 
-        CharNum.num += yytext().length();
-        Symbol S = new Symbol(sym.INTLITERAL,
-                      new IntLitTokenVal(yyline+1, startCol, val)
-                 );
-        return S;
+        String text = yytext();
+        CharNum.num += text.length();
+
+        try {
+            int val = Integer.parseInt(text); 
+            Symbol S = new Symbol(sym.INTLITERAL,
+                          new IntLitTokenVal(yyline+1, startCol, val)
+                     );
+            return S;
+        } catch (NumberFormatException e) {
+            Errors.fatal(yyline+1, startCol, 
+                         "integer literal too large: " + text);
+        }
             }
           // fall through
           case 57: break;
@@ -944,8 +961,36 @@ class Yylex implements java_cup.runtime.Scanner {
           case 66: break;
           case 22:
             { int startCol = CharNum.num;
-        CharNum.num += yytext().length();
-        return new Symbol(sym.STRINGLITERAL, new TokenVal(yyline+1, startCol));
+        String rawText = yytext();
+        CharNum.num += rawText.length();
+        
+        // Process the string: remove quotes and handle escapes
+        String innerVal = rawText.substring(1, rawText.length() - 1);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < innerVal.length(); i++) {
+            char c = innerVal.charAt(i);
+            if (c == '\\' && i + 1 < innerVal.length()) {
+                char next = innerVal.charAt(i + 1);
+                switch (next) {
+                    case 'n': sb.append('\n'); break;
+                    case 't': sb.append('\t'); break;
+                    case '\\': sb.append('\\'); break;
+                    case '\"': sb.append('\"'); break;
+                    case '\'': sb.append('\''); break;
+                    case '\u201C': sb.append('\u201C'); break; // “
+                    case '\u201D': sb.append('\u201D'); break; // ”
+                    default:
+                        sb.append(next);
+                }
+                i++; 
+            } else {
+                sb.append(c);
+            }
+        }
+        String processedVal = sb.toString();
+
+        return new Symbol(sym.STRINGLITERAL, 
+                          new StringLitTokenVal(yyline+1, startCol, processedVal));
             }
           // fall through
           case 67: break;
