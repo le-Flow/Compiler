@@ -624,8 +624,8 @@ abstract class ExpNode extends ASTnode {
 
 class IntLitNode extends ExpNode {
     public IntLitNode(int lineNum, int colNum, int intVal) {
-    myLineNum = lineNum;
-    myColNum = colNum;
+    //myLineNum = lineNum;
+    //myColNum = colNum;
     myIntVal = intVal;
     }
 
@@ -633,15 +633,15 @@ class IntLitNode extends ExpNode {
     p.print(myIntVal);
     }
 
-    private int myLineNum;
-    private int myColNum;
+    //private int myLineNum;
+    //private int myColNum;
     private int myIntVal;
 }
 
 class StringLitNode extends ExpNode {
     public StringLitNode(int lineNum, int colNum, String strVal) {
-    myLineNum = lineNum;
-    myColNum = colNum;
+    //myLineNum = lineNum;
+    //myColNum = colNum;
     myStrVal = strVal;
     }
 
@@ -649,44 +649,44 @@ class StringLitNode extends ExpNode {
     p.print(myStrVal);
     }
 
-    private int myLineNum;
-    private int myColNum;
+    //private int myLineNum;
+    //private int myColNum;
     private String myStrVal;
 }
 
 class TrueNode extends ExpNode {
     public TrueNode(int lineNum, int colNum) {
-    myLineNum = lineNum;
-    myColNum = colNum;
+    //myLineNum = lineNum;
+    //myColNum = colNum;
     }
 
     public void decompile(PrintWriter p, int indent) {
     p.print("true");
     }
 
-    private int myLineNum;
-    private int myColNum;
+    //private int myLineNum;
+    //private int myColNum;
 }
 
 class FalseNode extends ExpNode {
     public FalseNode(int lineNum, int colNum) {
-    myLineNum = lineNum;
-    myColNum = colNum;
+    //myLineNum = lineNum;
+    //myColNum = colNum;
     }
 
     public void decompile(PrintWriter p, int indent) {
     p.print("false");
     }
 
-    private int myLineNum;
-    private int myColNum;
+    //private int myLineNum;
+    //private int myColNum;
 }
 
 class IdNode extends ExpNode
 {
     public IdNode(int lineNum, int charNum, String strVal) {
-    myLineNum = lineNum;
-    myCharNum = charNum;
+    //myLineNum = lineNum;
+    //myCharNum = charNum;
     myStrVal = strVal;
     }
 
@@ -694,8 +694,8 @@ class IdNode extends ExpNode
     p.print(myStrVal);
     }
 
-    private int myLineNum;
-    private int myCharNum;
+    //private int myLineNum;
+    //private int myCharNum;
     private String myStrVal;
 }
 
@@ -772,6 +772,10 @@ class NotNode extends UnaryExpNode
     p.print("))");
     }
 }
+
+// **********************************************************************
+// Subclasses of BinaryExpNode
+// **********************************************************************
 
 class PlusNode extends BinaryExpNode
 {
