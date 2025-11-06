@@ -1,0 +1,9 @@
+public class sample {
+static int x;
+public static void main() {
+int y = 10;
+if (true) {
+System.out.println("Hello Simple!");
+}
+}
+}
