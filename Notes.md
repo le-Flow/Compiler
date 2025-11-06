@@ -3,7 +3,7 @@
 ### Todo:
 
 1. [X] Jlex oder Jflex installieren & Docs lesen (https://www.jflex.de/manual.html)
-2. [ ] Simple-Sprache Token und Kommentare implementieren
+2. [x] Simple-Sprache Token und Kommentare implementieren
 
 ### Empfehlung:
 
@@ -13,3 +13,6 @@
   aber einfach mit dem Comment Mode
 
 ### Jflex Notes:
+
+
+# Parser Praktikum

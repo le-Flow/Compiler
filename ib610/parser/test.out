@@ -1,0 +1,215 @@
+public class TestProgram {
+  static int globalCounter;
+  static boolean isActive;
+  static string message;
+  public static void initializeGlobals() {
+    globalCounter = (0);
+    isActive = (true);
+  }
+  public static int add(int a, int b) {
+    return (((a) + (b)));
+  }
+  public static int calculate(int x, int y, int z) {
+    int result;
+    result = (((((x) + (y))) * (z)));
+    return (result);
+  }
+  public static int arithmeticTest(int a, int b) {
+    int sum;
+    int diff;
+    int product;
+    int quotient;
+    int remainder;
+    int power;
+    sum = (((a) + (b)));
+    diff = (((a) - (b)));
+    product = (((a) * (b)));
+    quotient = (((a) / (b)));
+    remainder = (((a) % (b)));
+    power = (((a) ** (b)));
+    return (sum);
+  }
+  public static boolean logicTest(boolean x, boolean y) {
+    boolean andResult;
+    boolean orResult;
+    boolean notResult;
+    andResult = (((x) && (y)));
+    orResult = (((x) || (y)));
+    notResult = ((!(x)));
+    return (andResult);
+  }
+  public static boolean comparisonTest(int a, int b) {
+    boolean eq;
+    boolean neq;
+    boolean lt;
+    boolean gt;
+    boolean lte;
+    boolean gte;
+    eq = (((a) == (b)));
+    neq = (((a) != (b)));
+    lt = (((a) < (b)));
+    gt = (((a) > (b)));
+    lte = (((a) <= (b)));
+    gte = (((a) >= (b)));
+    return (eq);
+  }
+  public static void simpleIf(int x) {
+    if ((((x) > (0)))) {
+      {
+        print((x));
+      }
+    }
+    else {
+    }
+  }
+  public static void ifElse(int x) {
+    if ((((x) > (0)))) {
+      {
+        print((x));
+      }
+    }
+    else {
+      {
+        print(((-(x))));
+      }
+    }
+  }
+  public static void nestedIf(int x, int y) {
+    if ((((x) > (0)))) {
+      {
+        if ((((y) > (0)))) {
+          {
+            print((((x) + (y))));
+          }
+        }
+        else {
+          {
+            print((x));
+          }
+        }
+      }
+    }
+    else {
+      {
+        print((y));
+      }
+    }
+  }
+  public static void whileLoop(int n) {
+    int i;
+    i = (0);
+    while ((((i) < (n)))) {
+      {
+        print((i));
+        i = (((i) + (1)));
+      }
+    }
+  }
+  public static void doWhileLoop(int n) {
+    int i;
+    i = (0);
+    do {
+      {
+        print((i));
+        i = (((i) + (1)));
+      }
+    } while ((((i) < (n))))
+  }
+  public static void switchTest(int x) {
+    switch ((x)) {
+      case 1:
+        print((1));
+      case 2:
+        print((2));
+      case 3:
+        print((3));
+      default:
+        print((0));
+    }
+  }
+  public static void blockTest(int x) {
+    {
+      int localVar;
+      localVar = (((x) * (2)));
+      print((localVar));
+    }
+  }
+  public static int functionCallTest(int a, int b) {
+    int result;
+    result = (add(a, b));
+    return (result);
+  }
+  public static void voidCallTest() {
+    initializeGlobals();
+    simpleIf(5);
+    whileLoop(3);
+  }
+  public static int readTest() {
+    int userInput;
+    userInput = (read());
+    return (userInput);
+  }
+  public static void printTest() {
+    print((42));
+    print((true));
+    print((false));
+  }
+  public static void earlyReturn(int x) {
+    if ((((x) < (0)))) {
+      {
+        return;
+      }
+    }
+    else {
+    }
+    print((x));
+  }
+  public static int complexExpression(int a, int b, int c) {
+    int result;
+    result = (((((((((a) + (b))) * (c))) - (((((a) / (b))) ** (2))))) + (((a) % (b)))));
+    return (result);
+  }
+  public static int unaryMinusTest(int x) {
+    int negated;
+    negated = ((-(x)));
+    return (negated);
+  }
+  public static int parenTest(int a, int b, int c) {
+    return (((((((a) + (b))) * (((c) - (a))))) / (((b) + (1)))));
+  }
+  public static boolean booleanLiterals() {
+    boolean t;
+    boolean f;
+    t = (true);
+    f = (false);
+    return (((t) && ((!(f)))));
+  }
+  public static int assignmentExpression(int x) {
+    int a;
+    int b;
+    b = (((a = ((x) + (1))) + (2)));
+    return (b);
+  }
+  public static void main() {
+    int x;
+    int y;
+    int z;
+    boolean flag;
+    x = (10);
+    y = (20);
+    z = (add(x, y));
+    print((z));
+    flag = (((z) > (25)));
+    if ((flag)) {
+      {
+        print((100));
+      }
+    }
+    else {
+    }
+    whileLoop(5);
+    doWhileLoop(3);
+    switchTest(2);
+    print((999));
+  }
+}

@@ -1,0 +1,26 @@
+{
+    "folders": [
+        {
+            "name": "Compiler",
+            "path": "."
+        },
+        {
+            "name": "adamcloud.duckdns.org",
+            "uri": "webdavs://adamcloud.duckdns.org/remote.php/dav/files/adam/Adam/Informatik/Informatik_7._Semester/Compiler"
+        }
+    ],
+    "settings": {
+        "java.project.referencedLibraries": [
+            "lib/**/*.jar",
+            "ib610/jars/java-cup-11b.jar",
+            "ib610/jars/java-cup-11b-runtime.jar"
+        ],
+		"files.associations": {
+			"*.jlex": "jflex",
+            "*.sim": "plaintext",
+            "*.simple": "java",
+            "*.grammar": "go"
+		}
+        
+    }
+}
