@@ -1,4 +1,0 @@
-version 1.2
-commit af5b50693ca7a7243208e98e2228b3771f8c7f43
-last update Mon Oct 20 18:00:19 2025 +0000
-
