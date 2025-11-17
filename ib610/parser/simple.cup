@@ -149,9 +149,6 @@ precedence left    PLUS, MINUS;
 precedence left    TIMES, DIVIDE, MOD;
 precedence right   POWER, NOT, UMINUS;
 
-precedence nonassoc NO_ELSE;
-precedence nonassoc ELSE;
-
 start with program;
 
 /* Program Structure */
