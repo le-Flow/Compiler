@@ -187,7 +187,7 @@ public class TestProgram {
     // Function with complex expressions
     static int complexExpression(int a, int b, int c) {
         int result;
-        result = (a + b) * c - (a / b) ** 2 + a % b;
+        result = (a + b) * c - (a / b) ** 2 ** 3 + a % b;
         return result;
     }
     
