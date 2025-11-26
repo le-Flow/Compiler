@@ -1,0 +1,25 @@
+public class NameErrors {
+    
+    // Error: Multiply declared identifier (Global variable 'x' declared twice)
+    static int x;
+    static boolean x; 
+
+    // Error: Multiply declared identifier (Parameter 'p' declared twice)
+    static void test(int p, boolean p) {
+        return;
+    }
+
+    static void main() {
+        int a;
+        // Error: Multiply declared identifier (Local variable 'a' declared twice)
+        boolean a;
+
+        a = 1;
+
+        // Error: Undeclared identifier (Variable 'b' never declared)
+        b = 5;
+
+        // Error: Undeclared identifier (Method 'foo' never declared)
+        foo();
+    }
+}
