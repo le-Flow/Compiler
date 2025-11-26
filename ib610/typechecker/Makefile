@@ -1,7 +1,7 @@
 ###
 # This Makefile can be used to make a parser for the Simple language
-# (Yylex.class) and to make a program (P3.class) that tests the parser and
-# the unparse methods in ast.java.
+# (Yylex.class) and to make a program (P4.class) that tests the parser,
+# name analysis, and type checking.
 #
 # The default makes both the parser and the test program.
 #
@@ -12,35 +12,46 @@ CLASSPATH =  .:../jars/java-cup-11b-runtime.jar
 JARFILE = ../jars/java-cup-11b.jar
 FLAGS = -g -cp $(CLASSPATH)
 
-P3.class: P3.java parser.class Yylex.class ASTnode.class IO.class
-	javac $(FLAGS) P3.java
+# CHANGED: Target is P4.class. Added SymbolTable and Types dependencies.
+P4.class: P4.java parser.class Yylex.class ASTnode.class IO.class SymbolTable.class Types.class
+	javac $(FLAGS) P4.java
 
-parser.java: simple.cup
-	java -jar $(JARFILE) < simple.cup
-
-parser.class: parser.java ASTnode.class Yylex.class Errors.class
+# CHANGED: Added SymbolTable and Types dependencies.
+parser.class: parser.java ASTnode.class Yylex.class Errors.class SymbolTable.class Types.class
 	javac $(FLAGS) parser.java
+
+# KEPT: -expect 2 flag
+parser.java: simple.cup
+	java -jar $(JARFILE) -expect 2 < simple.cup
 
 Yylex.class: simple.jlex.java sym.class Errors.class
 	javac $(FLAGS) simple.jlex.java
 
-ASTnode.class: ast.java Sequence.class NoCurrentException.class
+# CHANGED: Added SymbolTable and Types dependencies.
+ASTnode.class: ast.java Sequence.class NoCurrentException.class SymbolTable.class Types.class
 	javac $(FLAGS) ast.java
 
+# ADDED: Compile SymbolTable
+SymbolTable.class: SymbolTable.java Types.class
+	javac $(FLAGS) SymbolTable.java
+
+# ADDED: Compile Types
+Types.class: Types.java
+	javac $(FLAGS) Types.java
 
 simple.jlex.java: simple.jlex
 	@echo "IMPORTANT You must replace the simple.jlex file with your scanner"
 	@echo "The provided simple.jlex is incomplete and just has what"
 	@echo "Is needed so that the incompled parser compiles"
-	jflex simple.jlex # use jflex it is more flexiblej
+	jflex simple.jlex # use jflex it is more flexible
 	mv Yylex.java simple.jlex.java # rename the file produced by jflex
-
 
 sym.class: sym.java
 	javac $(FLAGS) sym.java
 
+# KEPT: -expect 2 flag
 sym.java: simple.cup
-	java -cp $(CLASSPATH) java_cup.Main < simple.cup
+	java -cp $(CLASSPATH) java_cup.Main -expect 2 < simple.cup
 
 Errors.class: Errors.java
 	javac Errors.java
@@ -58,19 +69,20 @@ IO.class: IO.java
 # clean
 ###
 clean:
-	rm -f *~ *.class parser.java simple.jlex.java
+	rm -f *~ *.class parser.java simple.jlex.java sym.java
 
-test:	test.sim P3.class 
-	@echo "If you get an error below your Parser does not work yet!"
-	@echo "Modify the simple.cup specification to implement the language!"
-	java -cp $(CLASSPATH) P3 test.sim test.out
+# CHANGED: Runs P4 instead of P3
+test:   test.sim P4.class 
+	@echo "Running P4 on test.sim..."
+	java -cp $(CLASSPATH) P4 test.sim
 
 ###
 # submit
 ###
 
+# CHANGED: Added P4, SymbolTable, Types, and the required test files
 submit:
-	zip submit.zip *.java test.sim Makefile simple.jlex simple.cup test.sim  
+	zip submit.zip P4.java SymbolTable.java Types.java *.java test.sim NameErrors.sim TypeErrors.sim Makefile simple.jlex simple.cup 
 
 ###
 # handout
@@ -78,7 +90,3 @@ submit:
 
 handout:
 	zip handout.zip test.sim Makefile simple.grammar ast.java Errors.java IO.java NoCurrentException.java P3.java Sequence.java simple.cup simple.grammar
-
-
-
-

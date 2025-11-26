@@ -1,0 +1,32 @@
+public class TypeErrors {
+    
+    static int add(int a, int b) {
+        // Error: Return type mismatch (Returning boolean, expected int)
+        return true;
+    }
+
+    static void main() {
+        int i;
+        boolean b;
+
+        i = 5;
+        b = true;
+
+        // Error: Arithmetic operator applied to non-numeric operand (int + boolean)
+        i = 10 + b;
+
+        // Error: Logical operator applied to non-boolean operand (boolean && int)
+        b = true && i;
+
+        // Error: Condition in if statement must be boolean (100 is int)
+        if (100) {
+            i = 1;
+        }
+
+        // Error: Type mismatch in assignment (assigning boolean to int variable)
+        i = true;
+
+        // Error: Type mismatch in argument 2 (expected int, got boolean)
+        i = add(5, true);
+    }
+}

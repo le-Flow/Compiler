@@ -1,4 +1,5 @@
-import java_cup.runtime.*; // defines the Symbol class
+import java.io.*;
+import java_cup.runtime.*;
 
 // The generated scanner will return a Symbol for each token that it finds.
 // A Symbol contains an Object field named value; that field will be of type
@@ -15,7 +16,7 @@ class TokenVal {
  // constructor
     TokenVal(int l, int c) {
         linenum = l;
-	charnum = c;
+    charnum = c;
     }
 }
 
@@ -25,23 +26,31 @@ class IntLitTokenVal extends TokenVal {
  // constructor
     IntLitTokenVal(int l, int c, int val) {
         super(l,c);
-	intVal = val;
+        this.intVal = val;
     }
 }
 
-// THIS IS NECESSARY FOR THE PARSER TO COMPILE
-
-
-// Provided class to represent identifiers
-class IdTokenVal extends TokenVal {
-    String idVal;
-    IdTokenVal(int l, int c, String str) {
+class StringLitTokenVal extends TokenVal {
+ // new field: the value of the string literal
+    String stringVal;
+ // constructor
+    StringLitTokenVal(int l, int c, String val) {
         super(l,c);
-        idVal = str;
+        this.stringVal = val; // Store the processed string value
     }
 }
-// 
 
+// *** NEW CLASS ADDED ***
+// This class is required by your simple.cup file for ID tokens
+class IdTokenVal extends TokenVal {
+ // new field: the value of the identifier
+    String idVal;
+ // constructor
+    IdTokenVal(int l, int c, String val) {
+        super(l,c);
+        this.idVal = val;
+    }
+}
 
 
 // The following class is used to keep track of the character number at which
@@ -51,43 +60,175 @@ class CharNum {
 }
 %%
 
-DIGIT=		[0-9]
-WHITESPACE=	[\ \t\n]
+QUOTE_START = [\"\“]
+QUOTE_END = [\"\”]
 
-// The next 3 lines are included so that we can use the generated scanner
-// with java CUP (the Java parser generator)
+EscapeChar = [nt\'\\\"\“\”]
+EscapeSeq = \\{EscapeChar}
+StringChar = [^\\\n\"\“\”]
+
+DIGIT= [0-9]
+LETTER= [a-zA-Z]
+ID = {LETTER} ({LETTER}|{DIGIT}|"_")*
+INTLITERAL = {DIGIT}+
+
+STRINGLITERAL = {QUOTE_START}({EscapeSeq}|{StringChar})*{QUOTE_END}
+
 %implements java_cup.runtime.Scanner
 %function next_token
 %type java_cup.runtime.Symbol
 
-// Tell JLex what to do on end-of-file
+%state IN_COMMENT
+
 %eofval{
 return new Symbol(sym.EOF);
 %eofval}
 
-// Turn on line counting
 %line
 
 %%
 
-{DIGIT}+   {// NOTE: the following computation of the integer value does NOT
-	    //       check for overflow.  This must be changed.
-	    int val = Integer.parseInt(yytext());
-	    Symbol S = new Symbol(sym.INTLITERAL,
-			          new IntLitTokenVal(yyline+1, CharNum.num, val)
-				 );
-	    CharNum.num += yytext().length();
-	    return S;
-	   }
+<YYINITIAL> {
+    // Single-line Comments
+    "//" [^\r\n]* { /* ignore */ }
+    
+    // Multiline Comments - Transition to IN_COMMENT state
+    "/*" { CharNum.num += 2; yybegin(IN_COMMENT); }
 
-{WHITESPACE}+  {CharNum.num += yytext().length();}
+    \r?\n       { CharNum.num = 1; }
 
-"+"	   {Symbol S = new Symbol(sym.PLUS, new TokenVal(yyline+1, CharNum.num));
-	    CharNum.num++;
-	    return S;
-	   }
-	    
-.	   {Errors.fatal(yyline+1, CharNum.num,
-			 "ignoring illegal character: " + yytext());
-	    CharNum.num++;
-	   }
+    // Reserved Words (Keywords) 
+    "print"     { return new Symbol(sym.PRINT, new TokenVal(yyline+1, CharNum.num)); }
+    "String"    { return new Symbol(sym.STRING, new TokenVal(yyline+1, CharNum.num)); }
+    "boolean"   { return new Symbol(sym.BOOLEAN, new TokenVal(yyline+1, CharNum.num)); }
+    "class"     { return new Symbol(sym.CLASS, new TokenVal(yyline+1, CharNum.num)); }
+    "do"        { return new Symbol(sym.DO, new TokenVal(yyline+1, CharNum.num)); }
+    "else"      { return new Symbol(sym.ELSE, new TokenVal(yyline+1, CharNum.num)); }
+    "false"     { return new Symbol(sym.FALSE, new TokenVal(yyline+1, CharNum.num)); }
+    "if"        { return new Symbol(sym.IF, new TokenVal(yyline+1, CharNum.num)); }
+    "int"       { return new Symbol(sym.INT, new TokenVal(yyline+1, CharNum.num)); }
+    "public"    { return new Symbol(sym.PUBLIC, new TokenVal(yyline+1, CharNum.num)); }
+    "return"    { return new Symbol(sym.RETURN, new TokenVal(yyline+1, CharNum.num)); }
+    "static"    { return new Symbol(sym.STATIC, new TokenVal(yyline+1, CharNum.num)); }
+    "true"      { return new Symbol(sym.TRUE, new TokenVal(yyline+1, CharNum.num)); }
+    "void"      { return new Symbol(sym.VOID, new TokenVal(yyline+1, CharNum.num)); }
+    "while"     { return new Symbol(sym.WHILE, new TokenVal(yyline+1, CharNum.num)); }
+    
+    // *** NEW KEYWORDS ADDED ***
+    "switch"    { return new Symbol(sym.SWITCH, new TokenVal(yyline+1, CharNum.num)); }
+    "case"      { return new Symbol(sym.CASE, new TokenVal(yyline+1, CharNum.num)); }
+    "default"   { return new Symbol(sym.DEFAULT, new TokenVal(yyline+1, CharNum.num)); }
+
+    // Integer Literal
+    {INTLITERAL} {
+        int startCol = CharNum.num;
+        String text = yytext();
+        CharNum.num += text.length();
+
+        try {
+            int val = Integer.parseInt(text); 
+            Symbol S = new Symbol(sym.INTLITERAL,
+                          new IntLitTokenVal(yyline+1, startCol, val)
+                     );
+            return S;
+        } catch (NumberFormatException e) {
+            Errors.fatal(yyline+1, startCol, 
+                         "integer literal too large: " + text);
+        }
+    }
+
+    // String Literal
+    {STRINGLITERAL} { 
+        int startCol = CharNum.num;
+        String rawText = yytext();
+        CharNum.num += rawText.length();
+        
+        // Process the string: remove quotes and handle escapes
+        String innerVal = rawText.substring(1, rawText.length() - 1);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < innerVal.length(); i++) {
+            char c = innerVal.charAt(i);
+            if (c == '\\' && i + 1 < innerVal.length()) {
+                char next = innerVal.charAt(i + 1);
+                switch (next) {
+                    case 'n': sb.append('\n'); break;
+                    case 't': sb.append('\t'); break;
+                    case '\\': sb.append('\\'); break;
+                    case '\"': sb.append('\"'); break;
+                    case '\'': sb.append('\''); break;
+                    case '\u201C': sb.append('\u201C'); break; // “
+                    case '\u201D': sb.append('\u201D'); break; // ”
+                    default:
+                        sb.append(next);
+                }
+                i++; 
+            } else {
+                sb.append(c);
+            }
+        }
+        String processedVal = sb.toString();
+
+        return new Symbol(sym.STRINGLITERAL, 
+                          new StringLitTokenVal(yyline+1, startCol, processedVal)); 
+    }
+
+    // Identifier
+    {ID} { 
+        int startCol = CharNum.num;
+        String idVal = yytext(); // Get the text
+        CharNum.num += idVal.length();
+        // *** UPDATED to use IdTokenVal ***
+        return new Symbol(sym.ID, new IdTokenVal(yyline+1, startCol, idVal));
+    }
+    
+    // Whitespace
+    [ \t]+      { CharNum.num += yytext().length(); }
+    
+    // Operators/Separators (Longest match first)
+    "=="   { CharNum.num += 2; return new Symbol(sym.EQUALS, new TokenVal(yyline+1, CharNum.num - 2)); }
+    "!="   { CharNum.num += 2; return new Symbol(sym.NOTEQUALS, new TokenVal(yyline+1, CharNum.num - 2)); }
+    "<="   { CharNum.num += 2; return new Symbol(sym.LESSEQ, new TokenVal(yyline+1, CharNum.num - 2)); }
+    ">="   { CharNum.num += 2; return new Symbol(sym.GREATEREQ, new TokenVal(yyline+1, CharNum.num - 2)); }
+    "&&"   { CharNum.num += 2; return new Symbol(sym.AND, new TokenVal(yyline+1, CharNum.num - 2)); }
+    "||"   { CharNum.num += 2; return new Symbol(sym.OR, new TokenVal(yyline+1, CharNum.num - 2)); }
+    "**"   { CharNum.num += 2; return new Symbol(sym.POWER, new TokenVal(yyline+1, CharNum.num - 2)); } 
+
+    "+"    { CharNum.num++; return new Symbol(sym.PLUS, new TokenVal(yyline+1, CharNum.num - 1)); }
+    "-"    { CharNum.num++; return new Symbol(sym.MINUS, new TokenVal(yyline+1, CharNum.num - 1)); }
+    "*"    { CharNum.num++; return new Symbol(sym.TIMES, new TokenVal(yyline+1, CharNum.num - 1)); }
+    "/"    { CharNum.num++; return new Symbol(sym.DIVIDE, new TokenVal(yyline+1, CharNum.num - 1)); }
+    "%"    { CharNum.num++; return new Symbol(sym.MOD, new TokenVal(yyline+1, CharNum.num - 1)); }
+    "{"    { CharNum.num++; return new Symbol(sym.LCURLY, new TokenVal(yyline+1, CharNum.num - 1)); }
+    "}"    { CharNum.num++; return new Symbol(sym.RCURLY, new TokenVal(yyline+1, CharNum.num - 1)); }
+    "("    { CharNum.num++; return new Symbol(sym.LPAREN, new TokenVal(yyline+1, CharNum.num - 1)); }
+    ")"    { CharNum.num++; return new Symbol(sym.RPAREN, new TokenVal(yyline+1, CharNum.num - 1)); }
+    ","    { CharNum.num++; return new Symbol(sym.COMMA, new TokenVal(yyline+1, CharNum.num - 1)); }
+    "="    { CharNum.num++; return new Symbol(sym.ASSIGN, new TokenVal(yyline+1, CharNum.num - 1)); }
+    ";"    { CharNum.num++; return new Symbol(sym.SEMICOLON, new TokenVal(yyline+1, CharNum.num - 1)); }
+    ":"    { CharNum.num++; return new Symbol(sym.COLON, new TokenVal(yyline+1, CharNum.num - 1)); } 
+    "!"    { CharNum.num++; return new Symbol(sym.NOT, new TokenVal(yyline+1, CharNum.num - 1)); }
+    "<"    { CharNum.num++; return new Symbol(sym.LESS, new TokenVal(yyline+1, CharNum.num - 1)); }
+    ">"    { CharNum.num++; return new Symbol(sym.GREATER, new TokenVal(yyline+1, CharNum.num - 1)); }
+        
+    // Error Handling
+    .      {
+        Errors.fatal(yyline+1, CharNum.num,
+             "ignoring illegal character: " + yytext());
+        CharNum.num++;
+    }
+}
+
+// Rules for the IN_COMMENT state
+<IN_COMMENT> {
+    "*/" { CharNum.num += 2; yybegin(YYINITIAL); }
+    \r?\n { CharNum.num = 1; }
+    [^\r\n\*]+ { CharNum.num += yytext().length(); }
+    "*" { CharNum.num++; }
+    "/" { CharNum.num++; }
+
+    <<EOF>> {
+        Errors.fatal(yyline+1, CharNum.num,
+             "unterminated multiline comment");
+        yybegin(YYINITIAL);
+    }
+}
