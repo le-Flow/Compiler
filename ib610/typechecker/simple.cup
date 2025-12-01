@@ -9,9 +9,9 @@ import java_cup.runtime.*;
 
 parser code {:
 public void report_error(String message, Object info) {
-int line = 0;
-int column = 0;
-StringBuilder m = new StringBuilder("");
+    int line = 0;
+    int column = 0;
+    StringBuilder m = new StringBuilder("");
 
     if (info instanceof java_cup.runtime.Symbol) {
         java_cup.runtime.Symbol s = ((java_cup.runtime.Symbol) info);
@@ -38,8 +38,6 @@ StringBuilder m = new StringBuilder("");
     }
     Errors.fatal(line, column, ": " + message + m.toString());
 }
-
-
 :};
 
 
@@ -66,7 +64,7 @@ terminal TokenVal       CASE;
 terminal TokenVal       DEFAULT;
 
 /* Literals (with values) */
-terminal IdTokenVal     ID;
+terminal IdTokenVal      ID;
 terminal IntLitTokenVal INTLITERAL;
 terminal StringLitTokenVal STRINGLITERAL;
 
@@ -142,12 +140,12 @@ non terminal StringLitNode    stringLit;
 non terminal TrueNode         trueLit;
 non terminal FalseNode        falseLit;
 
-precedence left    OR;
-precedence left    AND;
+precedence left     OR;
+precedence left     AND;
 precedence nonassoc EQUALS, NOTEQUALS, LESS, GREATER, LESSEQ, GREATEREQ;
-precedence left    PLUS, MINUS;
-precedence left    TIMES, DIVIDE, MOD;
-precedence right   POWER, NOT, UMINUS;
+precedence left     PLUS, MINUS;
+precedence left     TIMES, DIVIDE, MOD;
+precedence right    POWER, NOT, UMINUS;
 
 start with program;
 
@@ -200,7 +198,16 @@ RESULT = dl;
 ;
 
 
-fnDecl      ::= STATIC type:t id:i LPAREN formalList:f RPAREN LCURLY localDeclList:ldl stmtList:s RCURLY
+/* UPDATED: Added PUBLIC productions for methods */
+fnDecl      ::= PUBLIC STATIC type:t id:i LPAREN formalList:f RPAREN LCURLY localDeclList:ldl stmtList:s RCURLY
+{: RESULT = new MethodDeclNode(t, i, new FormalsListNode(f),
+new MethodBodyNode(new DeclListNode(ldl), new StmtListNode(s)));
+:}
+| PUBLIC STATIC type:t id:i LPAREN RPAREN LCURLY localDeclList:ldl stmtList:s RCURLY
+{: RESULT = new MethodDeclNode(t, i, new FormalsListNode(new Sequence()),
+new MethodBodyNode(new DeclListNode(ldl), new StmtListNode(s)));
+:}
+| STATIC type:t id:i LPAREN formalList:f RPAREN LCURLY localDeclList:ldl stmtList:s RCURLY
 {: RESULT = new MethodDeclNode(t, i, new FormalsListNode(f),
 new MethodBodyNode(new DeclListNode(ldl), new StmtListNode(s)));
 :}

@@ -719,17 +719,20 @@ class CallStmtNode extends StmtNode {
     public int checkTypes() {
         SymbolTable.Sym sym = myId.getSym();
         if (sym == null) return Types.ErrorType;
+        
+        if (sym.paramTypes == null) {
+            Errors.fatal(myId.getLine(), myId.getChar(), "Identifier " + sym.name + " is not a method");
+            return Types.ErrorType;
+        }
 
         List<Integer> argTypes = myExpList.getTypes();
         List<SymbolTable.Sym> paramSyms = sym.paramTypes;
 
-        // Check argument count
         if (argTypes.size() != paramSyms.size()) {
             Errors.fatal(myId.getLine(), myId.getChar(), "Wrong number of arguments for method " + sym.name);
             return Types.ErrorType;
         }
 
-        // Check argument types
         for (int i = 0; i < argTypes.size(); i++) {
             int argT = argTypes.get(i);
             int paramT = paramSyms.get(i).type;
@@ -1074,7 +1077,13 @@ class CallExpNode extends ExpNode {
         SymbolTable.Sym sym = myId.getSym();
         if (sym == null) return Types.ErrorType; 
 
-        // Get list of argument types from the expression list
+        // Check if the symbol is actually a method
+        if (sym.paramTypes == null) {
+            Errors.fatal(myId.getLine(), myId.getChar(), "Identifier " + sym.name + " is not a method");
+            return Types.ErrorType;
+        }
+
+        // Get list of argument types
         List<Integer> argTypes = myExpList.getTypes();
         List<SymbolTable.Sym> paramSyms = sym.paramTypes;
 
@@ -1092,9 +1101,9 @@ class CallExpNode extends ExpNode {
                  Errors.fatal(myId.getLine(), myId.getChar(), "Type mismatch in argument " + (i+1) + " of call to " + sym.name);
             }
         }
-        // Return the actual return type of the method
+        
         return sym.type; 
-    } 
+    }
 
     public void decompile(PrintWriter p, int indent) {
         myId.decompile(p, indent);

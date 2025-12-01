@@ -11,7 +11,7 @@ public class SymbolTable {
         public Sym(String name, int type) {
             this.name = name;
             this.type = type;
-            this.paramTypes = new ArrayList<>();
+            this.paramTypes = null;
         }
         
         // Constructor for methods with parameters

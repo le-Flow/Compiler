@@ -20,7 +20,6 @@ public class P4 {
 
         try {
             // 1. Parsing
-            // FIXED: Changed 'new simple.jlex.Yylex' to 'new Yylex'
             parser P = new parser(new Yylex(input));
             
             Symbol result = P.parse();
@@ -34,7 +33,6 @@ public class P4 {
 
             // 3. Decompiling (Verification)
             if (Errors.fatalErrorCount == 0) {
-                // FIXED: Replaced 'IO.stdout' with standard PrintWriter
                 PrintWriter out = new PrintWriter(System.out, true);
                 root.decompile(out, 0); 
             }
