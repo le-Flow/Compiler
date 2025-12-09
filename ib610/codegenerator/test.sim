@@ -1,3 +1,49 @@
-// Here you write your extensive test program that must
-// excercise all grammatical concepts defined in simple.grammar
+public class Test {
+    
+    // Global variables
+    static int globalVal;
+    static boolean debug;
 
+    // Helper method (No public)
+    static int add(int a, int b) {
+        return a + b;
+    }
+
+    // Helper method (No public)
+    static boolean check(int val) {
+        if (val > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    // Main method (No public)
+    static void main() {
+        int localVal;
+        boolean res;
+
+        globalVal = 5;
+        localVal = 10;
+        
+        // Test Arithmetic
+        globalVal = globalVal * localVal + 2; 
+
+        // Test Method Call
+        localVal = add(globalVal, 5);
+        
+        // Test Logic / Control Flow
+        res = check(localVal);
+
+        if (res) {
+            print(1);
+        } else {
+            print(0);
+        }
+
+        // Test Loops
+        while (localVal > 0) {
+            localVal = localVal - 1;
+        }
+    }
+}

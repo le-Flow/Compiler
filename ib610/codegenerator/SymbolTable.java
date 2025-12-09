@@ -6,12 +6,21 @@ public class SymbolTable {
         public String name;
         public int type;
         public List<Sym> paramTypes;
+        public int offset;          // Speicheradresse relativ zum Framepointer
+        public boolean isLocal;     // True = lokal (Stack), False = global (Data Segment)
+        public int num_local_vars;  // Anzahl lokaler Variablen (nur für Methoden relevant)
+        public int num_params;      // Anzahl Parameter (nur für Methoden relevant)
 
-        // Constructor
+        // Constructor (Standard)
         public Sym(String name, int type) {
             this.name = name;
             this.type = type;
             this.paramTypes = null;
+            // Standardwerte setzen
+            this.offset = 0;
+            this.isLocal = false; 
+            this.num_local_vars = 0;
+            this.num_params = 0;
         }
         
         // Constructor for methods with parameters
@@ -19,10 +28,15 @@ public class SymbolTable {
             this.name = name;
             this.type = type;
             this.paramTypes = params;
+            // Standardwerte setzen
+            this.offset = 0;
+            this.isLocal = false;
+            this.num_local_vars = 0;
+            this.num_params = 0;
         }
 
         public String toString() {
-            return name + " (" + Types.ToString(type) + ")";
+            return name + " (" + Types.ToString(type) + ") Offset:" + offset + " Local:" + isLocal;
         }
     }
 
