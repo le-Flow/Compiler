@@ -15,6 +15,27 @@ _add:
 	sw    $fp, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	addu  $fp, $sp, 8
+	lw    $a0, 4($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 0($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	add   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $v0, 0($sp)		#POP
+	subu  $sp, $fp, 8
+	addu  $sp, $sp, 4
+	lw    $fp, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $ra, 0($sp)		#POP
+	jr    $ra
 _add_exit:
 		# Method Epilogue
 	subu  $sp, $fp, 8
@@ -31,6 +52,58 @@ _check:
 	sw    $fp, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	addu  $fp, $sp, 8
+	lw    $a0, 0($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	bgt   $t0, $t1, ._L2
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	b     ._L3
+._L2:
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+._L3:
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L0
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $v0, 0($sp)		#POP
+	subu  $sp, $fp, 8
+	addu  $sp, $sp, 4
+	lw    $fp, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $ra, 0($sp)		#POP
+	jr    $ra
+	b     ._L1
+._L0:
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $v0, 0($sp)		#POP
+	subu  $sp, $fp, 8
+	addu  $sp, $sp, 4
+	lw    $fp, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $ra, 0($sp)		#POP
+	jr    $ra
+._L1:
 _check_exit:
 		# Method Epilogue
 	subu  $sp, $fp, 8
@@ -48,7 +121,340 @@ main:	nop		#Start of main
 	sw    $fp, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	addu  $fp, $sp, 8
-	subu  $sp, $sp, 8
+	subu  $sp, $sp, 12
+.data
+._L4: .asciiz " START TEST "
+.text
+	la    $a0, ._L4
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 5
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, _globalVal
+	li    $a0, 10
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+.data
+._L5: .asciiz "Init Global (Erwarte 5):"
+.text
+	la    $a0, ._L5
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, _globalVal
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L6: .asciiz "Init Local (Erwarte 10):"
+.text
+	la    $a0, ._L6
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, _globalVal
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	mul   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 2
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	add   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, _globalVal
+.data
+._L7: .asciiz "Rechenergebnis (Erwarte 52):"
+.text
+	la    $a0, ._L7
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, _globalVal
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, _globalVal
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 5
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _add
+	addu  $sp, $sp, 8
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+.data
+._L8: .asciiz "Methodenaufruf add(52, 5) (Erwarte 57):"
+.text
+	la    $a0, ._L8
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _check
+	addu  $sp, $sp, 4
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -16($fp)
+.data
+._L9: .asciiz "Check > 0 (Erwarte true):"
+.text
+	la    $a0, ._L9
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -16($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L10
+	la    $a0, .true_msg
+	li    $v0, 4
+	syscall
+	b     ._L11
+._L10:
+	la    $a0, .false_msg
+	li    $v0, 4
+	syscall
+._L11:
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L12: .asciiz "If-Else Test:"
+.text
+	la    $a0, ._L12
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -16($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L13
+.data
+._L15: .asciiz "-> True-Zweig genommen (Richtig)"
+.text
+	la    $a0, ._L15
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	b     ._L14
+._L13:
+.data
+._L16: .asciiz "-> False-Zweig genommen (Falsch)"
+.text
+	la    $a0, ._L16
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+._L14:
+.data
+._L17: .asciiz "Countdown (57 bis 55):"
+.text
+	la    $a0, ._L17
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 54
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -20($fp)
+._L18:		#While Start
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, -20($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	bgt   $t0, $t1, ._L20
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	b     ._L21
+._L20:
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+._L21:
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L19
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	sub   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+	b     ._L18
+._L19:		#While End
+.data
+._L22: .asciiz " END TEST "
+.text
+	la    $a0, ._L22
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
 _main_exit:
 		# Method Epilogue
 	subu  $sp, $fp, 8

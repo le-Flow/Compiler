@@ -1,16 +1,15 @@
-public class Test {
+public class TestOutput {
     
-    // Global variables
+    // Globale Variablen müssen 'static' sein
     static int globalVal;
     static boolean debug;
 
-    // Helper method (No public)
-    static int add(int a, int b) {
+    // Methoden müssen 'public static' sein
+    public static int add(int a, int b) {
         return a + b;
     }
 
-    // Helper method (No public)
-    static boolean check(int val) {
+    public static boolean check(int val) {
         if (val > 0) {
             return true;
         } else {
@@ -18,32 +17,55 @@ public class Test {
         }
     }
 
-    // Main method (No public)
-    static void main() {
+    // Main Methode
+    public static void main() {
+        // Lokale Variablen (innerhalb von Methoden) haben KEINE Modifier
         int localVal;
         boolean res;
+        int limit; 
 
+        print(" START TEST ");
+
+        // 1. Initialisierung
         globalVal = 5;
         localVal = 10;
         
-        // Test Arithmetic
-        globalVal = globalVal * localVal + 2; 
-
-        // Test Method Call
-        localVal = add(globalVal, 5);
+        print("Init Global (Erwarte 5):");
+        print(globalVal);
+        print("Init Local (Erwarte 10):");
+        print(localVal);
         
-        // Test Logic / Control Flow
-        res = check(localVal);
+        // 2. Arithmetik
+        globalVal = globalVal * localVal + 2; 
+        print("Rechenergebnis (Erwarte 52):");
+        print(globalVal);
 
+        // 3. Methodenaufruf
+        localVal = add(globalVal, 5);
+        print("Methodenaufruf add(52, 5) (Erwarte 57):");
+        print(localVal);
+        
+        // 4. Logik
+        res = check(localVal);
+        print("Check > 0 (Erwarte true):");
+        print(res);
+
+        print("If-Else Test:");
         if (res) {
-            print(1);
+            print("-> True-Zweig genommen (Richtig)");
         } else {
-            print(0);
+            print("-> False-Zweig genommen (Falsch)");
         }
 
-        // Test Loops
-        while (localVal > 0) {
+        // 5. While-Schleife
+        print("Countdown (57 bis 55):");
+        limit = 54;
+        
+        while (localVal > limit) {
+            print(localVal);
             localVal = localVal - 1;
         }
+        
+        print(" END TEST ");
     }
 }

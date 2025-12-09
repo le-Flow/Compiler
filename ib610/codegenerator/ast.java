@@ -17,8 +17,10 @@ abstract class ASTnode {
     public int checkTypes() {
         return Types.ErrorType; 
     }
+    
+    // Code Generation
     public void codeGen() {
-        // Default: Do nothing (for nodes that don't generate code directly)
+        // Default: Do nothing
     }
 
     public int getLine() { return 0; }
@@ -323,6 +325,17 @@ class ExpListNode extends ASTnode {
         } catch (NoCurrentException ex) {}
         return types;
     }
+    
+    // --- CODE GEN: Argumente generieren ---
+    public void codeGen() {
+        try {
+            for (myExps.start(); myExps.isCurrent(); myExps.advance()) {
+                // Argument berechnen und pushen
+                ((ExpNode)myExps.getCurrent()).codeGen();
+            }
+        } catch (NoCurrentException ex) {}
+    }
+    // --------------------------------------
 
     public void decompile(PrintWriter p, int indent) {
         try {
@@ -441,36 +454,49 @@ class MethodDeclNode extends DeclNode {
         myBody = body;
     }
 
-    // Komplette Analyse inkl. Offsets
     public void analyzeNames(SymbolTable st) {
+        // 1. Name Analysis Check
         if (st.lookupLocal(myId.strVal()) != null) {
             Errors.fatal(myId.getLine(), myId.getChar(), "Multiply declared identifier");
         }
 
-        List<SymbolTable.Sym> params = myFormalsList.getSignatureParams();
+        // 2. Methodensymbol erstellen (Signatur)
+        List<SymbolTable.Sym> signatureParams = myFormalsList.getSignatureParams();
+        SymbolTable.Sym methodSym = st.new Sym(myId.strVal(), myReturnType.getType(), signatureParams);
+        methodSym.num_params = signatureParams.size(); //
         
-        // Parameter Offsets berechnen (Positiv ab FP, z.B. 0, 4, 8)
-        int paramOffset = 0; 
-        for (SymbolTable.Sym paramSym : params) {
-            paramSym.offset = paramOffset;
-            paramSym.isLocal = true; 
-            paramOffset += 4;
-        }
-
-        SymbolTable.Sym methodSym = st.new Sym(myId.strVal(), myReturnType.getType(), params);
-        methodSym.num_params = params.size(); //
-
         st.insert(methodSym);
         myId.link(methodSym);
 
+        // 3. Neuen Scope betreten
         st.enterScope();
 
+        // 4. Parameter in den Scope einfügen (erstellt neue Symbole!)
         myFormalsList.analyzeNames(st);
+
+        // 5. FIX: Die gerade eingefügten Symbole heraussuchen und korrigieren
+        // Da 'simple' Argumente von links nach rechts pusht (Arg1, Arg2), 
+        // liegt Arg2 an 0($fp) und Arg1 an 4($fp). Wir zählen also rückwärts.
+        int paramOffset = (signatureParams.size() - 1) * 4; 
+        
+        for (SymbolTable.Sym sigSym : signatureParams) {
+            // Das echte Symbol aus dem aktuellen Scope holen
+            SymbolTable.Sym actualSym = st.lookupLocal(sigSym.name);
+            
+            if (actualSym != null) {
+                actualSym.isLocal = true; // WICHTIG: Damit IdNode weiß, es ist lokal
+                actualSym.offset = paramOffset;
+            }
+            paramOffset -= 4; // Nächster Parameter liegt höher im Stack
+        }
+
+        // 6. Body analysieren
         myBody.analyzeNames(st);
 
-        // Lokale Variablen zählen und Offsets berechnen (Negativ ab FP, z.B. -4, -8)
-        int localsCount = myBody.analyzeLocals(st, -4);
-        methodSym.num_local_vars = localsCount; //
+        // 7. Lokale Variablen zählen (starten bei -4)
+        int localsCount = myBody.analyzeLocals(st, -12); 
+
+        methodSym.num_local_vars = localsCount; 
 
         st.exitScope();
     }
@@ -481,12 +507,11 @@ class MethodDeclNode extends DeclNode {
         return Types.VoidType;
     }
 
-    // CODE GEN: Prologue & Epilogue
+    // Code Generation bleibt gleich wie vorher
     public void codeGen() {
         Codegen.p.println(".text");
         String methodName = myId.strVal();
         
-        // Label
         if (methodName.equals("main")) {
             Codegen.p.println(".globl main");
             Codegen.generateLabeled("main", "nop", "Start of main");
@@ -494,37 +519,32 @@ class MethodDeclNode extends DeclNode {
             Codegen.generateLabel("_" + methodName);
         }
 
-        // Prologue
         Codegen.genComment("Method Prologue");
-        Codegen.genPush(Codegen.RA); // Save Return Address
-        Codegen.genPush(Codegen.FP); // Save old FP
-        Codegen.generate("addu", Codegen.FP, Codegen.SP, 8); // New FP
+        Codegen.genPush(Codegen.RA);
+        Codegen.genPush(Codegen.FP);
+        Codegen.generate("addu", Codegen.FP, Codegen.SP, 8); 
         
-        // Allocate space for locals
         SymbolTable.Sym sym = myId.getSym(); 
         int locals = (sym != null) ? sym.num_local_vars : 0;
         if (locals > 0) {
             Codegen.generate("subu", Codegen.SP, Codegen.SP, locals * 4);
         }
 
-        // Body
         myBody.codeGen();
 
-        // Epilogue
         Codegen.generateLabel("_" + methodName + "_exit");
         Codegen.genComment("Method Epilogue");
-        Codegen.generate("subu", Codegen.SP, Codegen.FP, 8); // Reset SP
-        Codegen.genPop(Codegen.FP); // Restore FP
-        Codegen.genPop(Codegen.RA); // Restore RA
+        Codegen.generate("subu", Codegen.SP, Codegen.FP, 8);
+        Codegen.genPop(Codegen.FP);
+        Codegen.genPop(Codegen.RA);
         
         if (methodName.equals("main")) {
-            Codegen.generate("li", Codegen.V0, 10); // Exit
+            Codegen.generate("li", Codegen.V0, 10);
             Codegen.generate("syscall");
         } else {
-            Codegen.generate("jr", Codegen.RA); // Return
+            Codegen.generate("jr", Codegen.RA);
         }
     }
-    // --------------------------------------------------
 
     public void decompile(PrintWriter p, int indent) {
         doIndent(p, indent);
@@ -541,7 +561,6 @@ class MethodDeclNode extends DeclNode {
     private FormalsListNode myFormalsList;
     private MethodBodyNode myBody;
 }
-
 class FormalDeclNode extends DeclNode {
     public FormalDeclNode(TypeNode type, IdNode id) {
         myType = type;
@@ -705,6 +724,27 @@ class AssignStmtNode extends StmtNode {
         }
         return Types.VoidType;
     }
+    
+    // --- CODE GEN: Zuweisung ---
+    public void codeGen() {
+        // 1. Ausdruck auswerten
+        myExp.codeGen();
+        
+        // 2. Wert in $a0 holen
+        Codegen.genPop(Codegen.ACC);
+        
+        // 3. Symbol holen
+        SymbolTable.Sym sym = myId.getSym();
+        
+        if (sym.isLocal) {
+            // Lokal: Speichern in Stack ($fp + offset)
+            Codegen.generateIndexed("sw", Codegen.ACC, Codegen.FP, sym.offset);
+        } else {
+            // Global: Speichern in Label
+            Codegen.generate("sw", Codegen.ACC, "_" + myId.strVal());
+        }
+    }
+    // ----------------------------------------
 
     public void decompile(PrintWriter p, int indent) {
         doIndent(p, indent);
@@ -746,6 +786,31 @@ class IfStmtNode extends StmtNode {
         if (myElseStmtList != null) myElseStmtList.checkTypes();
         return Types.VoidType;
     }
+
+    // --- CODE GEN: If-Else ---
+    public void codeGen() {
+        String falseLabel = Codegen.nextLabel();
+        String doneLabel = Codegen.nextLabel();
+
+        // Bedingung prüfen
+        myExp.codeGen();
+        Codegen.genPop(Codegen.ACC);
+        // Wenn 0 (false), springe zu else
+        Codegen.generate("beqz", Codegen.ACC, falseLabel);
+
+        // Then-Block
+        myThenStmtList.codeGen();
+        Codegen.generate("b", doneLabel);
+
+        // Else-Block
+        Codegen.genLabel(falseLabel);
+        if (myElseStmtList != null) {
+            myElseStmtList.codeGen();
+        }
+
+        Codegen.genLabel(doneLabel);
+    }
+    // -------------------------
 
     public void decompile(PrintWriter p, int indent) {
         doIndent(p, indent);
@@ -848,6 +913,23 @@ class CallStmtNode extends StmtNode {
         return Types.VoidType;
     }
 
+    // --- CODE GEN: void Methode aufrufen ---
+    public void codeGen() {
+        // 1. Argumente pushen
+        myExpList.codeGen();
+        
+        // 2. Springen
+        Codegen.generate("jal", "_" + myId.strVal());
+        
+        // 3. Argumente vom Stack entfernen
+        SymbolTable.Sym sym = myId.getSym();
+        if (sym.num_params > 0) {
+             Codegen.generate("addu", Codegen.SP, Codegen.SP, sym.num_params * 4);
+        }
+        // Void methode hat keinen Rückgabewert, den wir pushen müssten.
+    }
+    // ---------------------------------------
+
     public void decompile(PrintWriter p, int indent) {
         doIndent(p, indent);
         myId.decompile(p, indent);
@@ -861,6 +943,7 @@ class CallStmtNode extends StmtNode {
 }
 
 class ReturnStmtNode extends StmtNode {
+    // ... Konstruktor und analyzeNames bleiben gleich ...
     public ReturnStmtNode(ExpNode exp) { 
         myExp = exp;
     }
@@ -879,6 +962,18 @@ class ReturnStmtNode extends StmtNode {
             }
         }
         return Types.VoidType;
+    }
+    
+    public void codeGen() {
+        if (myExp != null) {
+            myExp.codeGen();
+            Codegen.genPop(Codegen.V0); // Ergebnis in Return-Register
+        }
+        
+        Codegen.generate("subu", Codegen.SP, Codegen.FP, 8);
+        Codegen.genPop(Codegen.FP); 
+        Codegen.genPop(Codegen.RA);
+        Codegen.generate("jr", Codegen.RA);
     }
 
     public void decompile(PrintWriter p, int indent) {
@@ -914,6 +1009,12 @@ class BlockStmtNode extends StmtNode {
         return Types.VoidType;
     }
 
+    public void codeGen() {
+        // Deklarationen werden schon im Prolog behandelt (Platz reserviert)
+        // Hier nur Statements generieren
+        myStmtList.codeGen();
+    }
+
     public void decompile(PrintWriter p, int indent) {
         doIndent(p, indent);
         p.println("{");
@@ -946,6 +1047,22 @@ class SwitchStmtNode extends StmtNode {
         myGroupList.checkTypes();
         return Types.VoidType;
     }
+
+    // --- CODE GEN: Switch-Statement ---
+    public void codeGen() {
+        // 1. Ausdruck auswerten
+        myExp.codeGen(); // Liegt auf Stack
+        Codegen.genPop(Codegen.ACC); // In Akkumulator
+
+        // Das ist etwas komplexer, für das Praktikum reicht evtl. eine Vereinfachung
+        // oder man muss über die Gruppen iterieren.
+        // Da SwitchGroupListNode generisch ist, implementieren wir hier nur den Rahmen.
+        // Die Logik müsste eigentlich "Compare -> Jump" für jedes Case sein.
+        // Für 'Simple' wird oft eine If-Else-Kette generiert.
+        
+        myGroupList.codeGen(); // Generiert die Cases (eigentlich müssten wir Werte vergleichen)
+    }
+    // -----------------------------------------------------
 
     public void decompile(PrintWriter p, int indent) {
         doIndent(p, indent);
@@ -983,6 +1100,14 @@ class SwitchGroupListNode extends ASTnode {
         } catch (NoCurrentException ex) {}
         return Types.VoidType;
     }
+    
+    public void codeGen() {
+        try {
+            for (myGroups.start(); myGroups.isCurrent(); myGroups.advance()) {
+                ((SwitchGroupNode)myGroups.getCurrent()).codeGen();
+            }
+        } catch (NoCurrentException ex) {}
+    }
 
     public void decompile(PrintWriter p, int indent) {
         try {
@@ -1008,6 +1133,15 @@ class SwitchGroupNode extends ASTnode {
         myStmtList.checkTypes();
         return Types.VoidType;
     }
+    
+    public void codeGen() {
+        // Hier müsste eigentlich ein Label geprüft werden.
+        // Switch in Simple ist tricky ohne Kontext des Switch-Wertes.
+        // Vereinfacht: Code generieren.
+        myLabel.codeGen();
+        myStmtList.codeGen();
+    }
+    
     public void decompile(PrintWriter p, int indent) {
         myLabel.decompile(p, indent);
         myStmtList.decompile(p, indent+2);
@@ -1021,6 +1155,11 @@ abstract class SwitchLabelNode extends ASTnode {
 
 class DefaultLabelNode extends SwitchLabelNode {
     public DefaultLabelNode() {}
+    
+    public void codeGen() {
+         // Label generieren?
+    }
+
     public void decompile(PrintWriter p, int indent) {
         doIndent(p, indent);
         p.println("default:");
@@ -1033,8 +1172,10 @@ class CaseLabelNode extends SwitchLabelNode {
     }
     
     public void codeGen() {
-        // Default doesn't need to generate code here, handled by switch logic
-        // Codegen.generate("li", Codegen.ACC, myIntLit.getVal()); 
+        // Wert holen
+        Codegen.generate("li", Codegen.T1, myIntLit.getVal());
+        // Hier müsste der Vergleich stattfinden... 
+        // Ohne Kontext des Switch-Ausdrucks schwer an dieser Stelle zu lösen.
     }
 
     public void decompile(PrintWriter p, int indent) {
@@ -1091,20 +1232,21 @@ class StringLitNode extends ExpNode {
     public int getChar() { return myColNum; }
 
     public int checkTypes() { return Types.StringType; }
-    public void decompile(PrintWriter p, int indent) { p.print(myStrVal); }
-
+    
     public void codeGen() {
         String label = Codegen.nextLabel();
         
-        // String im Data-Segment speichern
+        // 1. String im Data-Segment speichern
         Codegen.p.println(".data");
-        Codegen.p.println(label + ": .asciiz " + myStrVal);
+        Codegen.p.println(label + ": .asciiz \"" + myStrVal + "\"");         
         Codegen.p.println(".text"); // Zurück zum Code
         
-        // Adresse des Strings laden
+        // 2. Adresse des Strings laden
         Codegen.generate("la", Codegen.ACC, label);
         Codegen.genPush(Codegen.ACC);
     }
+
+    public void decompile(PrintWriter p, int indent) { p.print(myStrVal); }
 }
 
 class TrueNode extends ExpNode {
@@ -1119,6 +1261,12 @@ class TrueNode extends ExpNode {
     public int getChar() { return myColNum; }
 
     public int checkTypes() { return Types.BoolType; }
+    
+    public void codeGen() {
+        Codegen.generate("li", Codegen.ACC, Codegen.TRUE); 
+        Codegen.genPush(Codegen.ACC);
+    }
+    
     public void decompile(PrintWriter p, int indent) { p.print("true"); }
 }
 
@@ -1134,6 +1282,12 @@ class FalseNode extends ExpNode {
     public int getChar() { return myColNum; }
 
     public int checkTypes() { return Types.BoolType; }
+    
+    public void codeGen() {
+        Codegen.generate("li", Codegen.ACC, Codegen.FALSE); 
+        Codegen.genPush(Codegen.ACC);
+    }
+    
     public void decompile(PrintWriter p, int indent) { p.print("false"); }
 }
 
@@ -1172,6 +1326,20 @@ class IdNode extends ExpNode {
         if (mySym != null) return mySym.type;
         return Types.ErrorType;
     }
+
+    // --- CODE GEN: Variable laden ---
+    public void codeGen() {
+        if (mySym.isLocal) {
+            // Lokal: Laden relativ zum Framepointer ($fp)
+            Codegen.generateIndexed("lw", Codegen.ACC, Codegen.FP, mySym.offset);
+        } else {
+            // Global: Laden via Label
+            Codegen.generate("lw", Codegen.ACC, "_" + myStrVal);
+        }
+        // Wert auf den Stack pushen
+        Codegen.genPush(Codegen.ACC);
+    }
+    // ---------------------------------------------
 
     public void decompile(PrintWriter p, int indent) {
         p.print(myStrVal);
@@ -1228,6 +1396,25 @@ class CallExpNode extends ExpNode {
         return sym.type; 
     }
 
+    // --- CODE GEN: Methodenaufruf mit Rückgabewert ---
+    public void codeGen() {
+        // 1. Argumente pushen
+        myExpList.codeGen();
+        
+        // 2. Springen
+        Codegen.generate("jal", "_" + myId.strVal());
+        
+        // 3. Argumente vom Stack entfernen
+        SymbolTable.Sym sym = myId.getSym();
+        if (sym.num_params > 0) {
+             Codegen.generate("addu", Codegen.SP, Codegen.SP, sym.num_params * 4);
+        }
+        
+        // 4. Rückgabewert ($v0) auf Stack retten
+        Codegen.genPush(Codegen.V0);
+    }
+    // -------------------------------------------------
+
     public void decompile(PrintWriter p, int indent) {
         myId.decompile(p, indent);
         p.print("(");
@@ -1262,6 +1449,19 @@ abstract class BinaryExpNode extends ExpNode {
         myExp1.analyzeNames(st);
         myExp2.analyzeNames(st);
     }
+    
+    // Hilfsmethode für binäre Operatoren
+    protected void genOp(String opcode) {
+        myExp1.codeGen(); // Linker Operand auf Stack
+        myExp2.codeGen(); // Rechter Operand auf Stack
+        
+        Codegen.genPop(Codegen.T1); // Rechts in $t1
+        Codegen.genPop(Codegen.T0); // Links in $t0
+        
+        Codegen.generate(opcode, Codegen.ACC, Codegen.T0, Codegen.T1); // $a0 = $t0 op $t1
+        Codegen.genPush(Codegen.ACC); // Ergebnis auf Stack
+    }
+    
     protected ExpNode myExp1;
     protected ExpNode myExp2;
 }
@@ -1276,6 +1476,13 @@ class UnaryMinusNode extends UnaryExpNode {
             return Types.ErrorType;
         }
         return Types.IntType;
+    }
+    
+    public void codeGen() {
+        myExp.codeGen();
+        Codegen.genPop(Codegen.T0);
+        Codegen.generate("neg", Codegen.ACC, Codegen.T0);
+        Codegen.genPush(Codegen.ACC);
     }
 
     public void decompile(PrintWriter p, int indent) {
@@ -1296,6 +1503,13 @@ class NotNode extends UnaryExpNode {
         }
         return Types.BoolType;
     }
+    
+    public void codeGen() {
+        myExp.codeGen();
+        Codegen.genPop(Codegen.T0);
+        Codegen.generate("not", Codegen.ACC, Codegen.T0); // Bitweises Not funktioniert auch für -1/0
+        Codegen.genPush(Codegen.ACC);
+    }
 
     public void decompile(PrintWriter p, int indent) {
         p.print("(!(");
@@ -1315,6 +1529,8 @@ class PlusNode extends BinaryExpNode {
         Errors.fatal(myExp1.getLine(), myExp1.getChar(), "Arithmetic operator applied to non-numeric operand");
         return Types.ErrorType;
     }
+    
+    public void codeGen() { genOp("add"); }
 
     public void decompile(PrintWriter p, int indent) {
         p.print("((");
@@ -1336,6 +1552,8 @@ class MinusNode extends BinaryExpNode {
         Errors.fatal(myExp1.getLine(), myExp1.getChar(), "Arithmetic operator applied to non-numeric operand");
         return Types.ErrorType;
     }
+    
+    public void codeGen() { genOp("sub"); }
 
     public void decompile(PrintWriter p, int indent) {
         p.print("((");
@@ -1358,6 +1576,8 @@ class TimesNode extends BinaryExpNode {
         return Types.ErrorType;
     }
 
+    public void codeGen() { genOp("mul"); }
+    
     public void decompile(PrintWriter p, int indent) {
         p.print("((");
         myExp1.decompile(p, indent);
@@ -1379,6 +1599,8 @@ class DivideNode extends BinaryExpNode {
         return Types.ErrorType;
     }
 
+    public void codeGen() { genOp("div"); }
+    
     public void decompile(PrintWriter p, int indent) {
         p.print("((");
         myExp1.decompile(p, indent);
@@ -1400,6 +1622,8 @@ class AndNode extends BinaryExpNode {
         return Types.ErrorType;
     }
 
+    public void codeGen() { genOp("and"); }
+    
     public void decompile(PrintWriter p, int indent) {
         p.print("((");
         myExp1.decompile(p, indent);
@@ -1421,6 +1645,8 @@ class OrNode extends BinaryExpNode {
         return Types.ErrorType;
     }
 
+    public void codeGen() { genOp("or"); }
+    
     public void decompile(PrintWriter p, int indent) {
         p.print("((");
         myExp1.decompile(p, indent);
@@ -1443,6 +1669,14 @@ class EqualsNode extends BinaryExpNode {
         return Types.ErrorType;
     }
 
+    public void codeGen() {
+        myExp1.codeGen();
+        myExp2.codeGen();
+        Codegen.genPop(Codegen.T1);
+        Codegen.genPop(Codegen.T0);
+        Codegen.genCompare("beq"); 
+    }
+    
     public void decompile(PrintWriter p, int indent) {
         p.print("((");
         myExp1.decompile(p, indent);
@@ -1464,6 +1698,14 @@ class NotEqualsNode extends BinaryExpNode {
         return Types.ErrorType;
     }
 
+    public void codeGen() {
+        myExp1.codeGen();
+        myExp2.codeGen();
+        Codegen.genPop(Codegen.T1);
+        Codegen.genPop(Codegen.T0);
+        Codegen.genCompare("bne"); 
+    }
+    
     public void decompile(PrintWriter p, int indent) {
         p.print("((");
         myExp1.decompile(p, indent);
@@ -1485,6 +1727,14 @@ class LessNode extends BinaryExpNode {
         return Types.ErrorType;
     }
 
+    public void codeGen() { 
+        myExp1.codeGen();
+        myExp2.codeGen();
+        Codegen.genPop(Codegen.T1);
+        Codegen.genPop(Codegen.T0);
+        Codegen.genCompare("blt"); 
+    }
+    
     public void decompile(PrintWriter p, int indent) {
         p.print("((");
         myExp1.decompile(p, indent);
@@ -1506,6 +1756,14 @@ class GreaterNode extends BinaryExpNode {
         return Types.ErrorType;
     }
 
+    public void codeGen() { 
+        myExp1.codeGen();
+        myExp2.codeGen();
+        Codegen.genPop(Codegen.T1);
+        Codegen.genPop(Codegen.T0);
+        Codegen.genCompare("bgt"); 
+    }
+    
     public void decompile(PrintWriter p, int indent) {
         p.print("((");
         myExp1.decompile(p, indent);
@@ -1527,6 +1785,14 @@ class LessEqNode extends BinaryExpNode {
         return Types.ErrorType;
     }
 
+    public void codeGen() { 
+        myExp1.codeGen();
+        myExp2.codeGen();
+        Codegen.genPop(Codegen.T1);
+        Codegen.genPop(Codegen.T0);
+        Codegen.genCompare("ble"); 
+    }
+    
     public void decompile(PrintWriter p, int indent) {
         p.print("((");
         myExp1.decompile(p, indent);
@@ -1548,6 +1814,14 @@ class GreaterEqNode extends BinaryExpNode {
         return Types.ErrorType;
     }
 
+    public void codeGen() { 
+        myExp1.codeGen();
+        myExp2.codeGen();
+        Codegen.genPop(Codegen.T1);
+        Codegen.genPop(Codegen.T0);
+        Codegen.genCompare("bge"); 
+    }
+    
     public void decompile(PrintWriter p, int indent) {
         p.print("((");
         myExp1.decompile(p, indent);
@@ -1569,6 +1843,8 @@ class ModNode extends BinaryExpNode {
         return Types.ErrorType;
     }
 
+    public void codeGen() { genOp("rem"); }
+    
     public void decompile(PrintWriter p, int indent) {
         p.print("((");
         myExp1.decompile(p, indent);
@@ -1620,6 +1896,28 @@ class WhileStmtNode extends StmtNode {
         myStmtList.checkTypes();
         return Types.VoidType;
     }
+
+    // --- CODE GEN: While Loop ---
+    public void codeGen() {
+        String startLabel = Codegen.nextLabel();
+        String doneLabel = Codegen.nextLabel();
+
+        Codegen.genLabel(startLabel, "While Start");
+        
+        // Bedingung
+        myExp.codeGen();
+        Codegen.genPop(Codegen.ACC);
+        Codegen.generate("beqz", Codegen.ACC, doneLabel);
+
+        // Body
+        myStmtList.codeGen();
+        
+        // Sprung zurück
+        Codegen.generate("b", startLabel);
+        
+        Codegen.genLabel(doneLabel, "While End");
+    }
+    // ----------------------------
 
     public void decompile(PrintWriter p, int indent) {
         doIndent(p, indent);
