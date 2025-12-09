@@ -3,10 +3,24 @@
 .newline: .asciiz "\n"
 .true_msg: .asciiz "true"
 .false_msg: .asciiz "false"
+
+.text
+.globl main
+
+# Initialize stack pointer
+	addiu $sp, $sp, -4
+	jal   main
+	li    $v0, 10
+	syscall
+
 .data
 _globalVal: .word 0
 .data
+_counter: .word 0
+.data
 _debug: .word 0
+.data
+_flag: .word 0
 .text
 _add:
 		# Method Prologue
@@ -15,10 +29,10 @@ _add:
 	sw    $fp, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	addu  $fp, $sp, 8
-	lw    $a0, 4($fp)
+	lw    $a0, 8($fp)
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
-	lw    $a0, 0($fp)
+	lw    $a0, 4($fp)
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
@@ -30,19 +44,132 @@ _add:
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
 	lw    $v0, 0($sp)		#POP
-	subu  $sp, $fp, 8
-	addu  $sp, $sp, 4
-	lw    $fp, 0($sp)		#POP
-	addu  $sp, $sp, 4
-	lw    $ra, 0($sp)		#POP
-	jr    $ra
+	b     _add_exit
 _add_exit:
 		# Method Epilogue
-	subu  $sp, $fp, 8
+	move  $sp, $fp
+	lw    $ra, 0($fp)
+	lw    $fp, -4($fp)
+	jr    $ra
+.text
+_subtract:
+		# Method Prologue
+	sw    $ra, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	sw    $fp, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $fp, $sp, 8
+	lw    $a0, 8($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
-	lw    $fp, 0($sp)		#POP
+	lw    $t1, 0($sp)		#POP
 	addu  $sp, $sp, 4
-	lw    $ra, 0($sp)		#POP
+	lw    $t0, 0($sp)		#POP
+	sub   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $v0, 0($sp)		#POP
+	b     _subtract_exit
+_subtract_exit:
+		# Method Epilogue
+	move  $sp, $fp
+	lw    $ra, 0($fp)
+	lw    $fp, -4($fp)
+	jr    $ra
+.text
+_multiply:
+		# Method Prologue
+	sw    $ra, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	sw    $fp, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $fp, $sp, 8
+	lw    $a0, 8($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	mul   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $v0, 0($sp)		#POP
+	b     _multiply_exit
+_multiply_exit:
+		# Method Epilogue
+	move  $sp, $fp
+	lw    $ra, 0($fp)
+	lw    $fp, -4($fp)
+	jr    $ra
+.text
+_divide:
+		# Method Prologue
+	sw    $ra, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	sw    $fp, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $fp, $sp, 8
+	lw    $a0, 8($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	div   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $v0, 0($sp)		#POP
+	b     _divide_exit
+_divide_exit:
+		# Method Epilogue
+	move  $sp, $fp
+	lw    $ra, 0($fp)
+	lw    $fp, -4($fp)
+	jr    $ra
+.text
+_modulo:
+		# Method Prologue
+	sw    $ra, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	sw    $fp, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $fp, $sp, 8
+	lw    $a0, 8($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	rem   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $v0, 0($sp)		#POP
+	b     _modulo_exit
+_modulo_exit:
+		# Method Epilogue
+	move  $sp, $fp
+	lw    $ra, 0($fp)
+	lw    $fp, -4($fp)
 	jr    $ra
 .text
 _check:
@@ -52,16 +179,12 @@ _check:
 	sw    $fp, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	addu  $fp, $sp, 8
-	lw    $a0, 0($fp)
+	lw    $a0, 4($fp)
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	li    $a0, 0
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
-	addu  $sp, $sp, 4
-	lw    $t1, 0($sp)		#POP
-	addu  $sp, $sp, 4
-	lw    $t0, 0($sp)		#POP
 	addu  $sp, $sp, 4
 	lw    $t1, 0($sp)		#POP
 	addu  $sp, $sp, 4
@@ -84,12 +207,7 @@ _check:
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
 	lw    $v0, 0($sp)		#POP
-	subu  $sp, $fp, 8
-	addu  $sp, $sp, 4
-	lw    $fp, 0($sp)		#POP
-	addu  $sp, $sp, 4
-	lw    $ra, 0($sp)		#POP
-	jr    $ra
+	b     _check_exit
 	b     ._L1
 ._L0:
 	li    $a0, 0
@@ -97,24 +215,251 @@ _check:
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
 	lw    $v0, 0($sp)		#POP
-	subu  $sp, $fp, 8
-	addu  $sp, $sp, 4
-	lw    $fp, 0($sp)		#POP
-	addu  $sp, $sp, 4
-	lw    $ra, 0($sp)		#POP
-	jr    $ra
+	b     _check_exit
 ._L1:
 _check_exit:
 		# Method Epilogue
-	subu  $sp, $fp, 8
-	addu  $sp, $sp, 4
-	lw    $fp, 0($sp)		#POP
-	addu  $sp, $sp, 4
-	lw    $ra, 0($sp)		#POP
+	move  $sp, $fp
+	lw    $ra, 0($fp)
+	lw    $fp, -4($fp)
 	jr    $ra
 .text
-.globl main
-main:	nop		#Start of main
+_isEven:
+		# Method Prologue
+	sw    $ra, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	sw    $fp, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $fp, $sp, 8
+	subu  $sp, $sp, 4
+	lw    $a0, 4($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 2
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	rem   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -8($fp)
+	lw    $a0, -8($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	beq   $t0, $t1, ._L6
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	b     ._L7
+._L6:
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+._L7:
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L4
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $v0, 0($sp)		#POP
+	b     _isEven_exit
+	b     ._L5
+._L4:
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $v0, 0($sp)		#POP
+	b     _isEven_exit
+._L5:
+_isEven_exit:
+		# Method Epilogue
+	move  $sp, $fp
+	lw    $ra, 0($fp)
+	lw    $fp, -4($fp)
+	jr    $ra
+.text
+_factorial:
+		# Method Prologue
+	sw    $ra, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	sw    $fp, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $fp, $sp, 8
+	lw    $a0, 4($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	ble   $t0, $t1, ._L10
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	b     ._L11
+._L10:
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+._L11:
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L8
+	li    $a0, 1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $v0, 0($sp)		#POP
+	b     _factorial_exit
+	b     ._L9
+._L8:
+	lw    $a0, 4($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	sub   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _factorial
+	addu  $sp, $sp, 4
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	mul   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $v0, 0($sp)		#POP
+	b     _factorial_exit
+._L9:
+_factorial_exit:
+		# Method Epilogue
+	move  $sp, $fp
+	lw    $ra, 0($fp)
+	lw    $fp, -4($fp)
+	jr    $ra
+.text
+_fibonacci:
+		# Method Prologue
+	sw    $ra, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	sw    $fp, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $fp, $sp, 8
+	lw    $a0, 4($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	ble   $t0, $t1, ._L14
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	b     ._L15
+._L14:
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+._L15:
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L12
+	lw    $a0, 4($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $v0, 0($sp)		#POP
+	b     _fibonacci_exit
+	b     ._L13
+._L12:
+	lw    $a0, 4($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	sub   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _fibonacci
+	addu  $sp, $sp, 4
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 2
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	sub   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _fibonacci
+	addu  $sp, $sp, 4
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	add   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $v0, 0($sp)		#POP
+	b     _fibonacci_exit
+._L13:
+_fibonacci_exit:
+		# Method Epilogue
+	move  $sp, $fp
+	lw    $ra, 0($fp)
+	lw    $fp, -4($fp)
+	jr    $ra
+.text
+_complexCalc:
 		# Method Prologue
 	sw    $ra, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
@@ -122,10 +467,371 @@ main:	nop		#Start of main
 	subu  $sp, $sp, 4
 	addu  $fp, $sp, 8
 	subu  $sp, $sp, 12
-.data
-._L4: .asciiz " START TEST "
+	lw    $a0, 12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 8($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	mul   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -8($fp)
+	lw    $a0, 4($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 2
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	div   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+	lw    $a0, -8($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	add   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 5
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	sub   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -16($fp)
+	lw    $a0, -16($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $v0, 0($sp)		#POP
+	b     _complexCalc_exit
+_complexCalc_exit:
+		# Method Epilogue
+	move  $sp, $fp
+	lw    $ra, 0($fp)
+	lw    $fp, -4($fp)
+	jr    $ra
 .text
-	la    $a0, ._L4
+_incrementGlobal:
+		# Method Prologue
+	sw    $ra, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	sw    $fp, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $fp, $sp, 8
+	lw    $a0, _globalVal
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	add   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, _globalVal
+_incrementGlobal_exit:
+		# Method Epilogue
+	move  $sp, $fp
+	lw    $ra, 0($fp)
+	lw    $fp, -4($fp)
+	jr    $ra
+.text
+_setCounter:
+		# Method Prologue
+	sw    $ra, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	sw    $fp, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $fp, $sp, 8
+	lw    $a0, 4($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, _counter
+_setCounter_exit:
+		# Method Epilogue
+	move  $sp, $fp
+	lw    $ra, 0($fp)
+	lw    $fp, -4($fp)
+	jr    $ra
+.text
+_compareThree:
+		# Method Prologue
+	sw    $ra, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	sw    $fp, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $fp, $sp, 8
+	lw    $a0, 12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 8($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	bgt   $t0, $t1, ._L18
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	b     ._L19
+._L18:
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+._L19:
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L16
+	lw    $a0, 12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	bgt   $t0, $t1, ._L22
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	b     ._L23
+._L22:
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+._L23:
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L20
+	lw    $a0, 12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $v0, 0($sp)		#POP
+	b     _compareThree_exit
+	b     ._L21
+._L20:
+	lw    $a0, 4($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $v0, 0($sp)		#POP
+	b     _compareThree_exit
+._L21:
+	b     ._L17
+._L16:
+	lw    $a0, 8($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	bgt   $t0, $t1, ._L26
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	b     ._L27
+._L26:
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+._L27:
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L24
+	lw    $a0, 8($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $v0, 0($sp)		#POP
+	b     _compareThree_exit
+	b     ._L25
+._L24:
+	lw    $a0, 4($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $v0, 0($sp)		#POP
+	b     _compareThree_exit
+._L25:
+._L17:
+_compareThree_exit:
+		# Method Epilogue
+	move  $sp, $fp
+	lw    $ra, 0($fp)
+	lw    $fp, -4($fp)
+	jr    $ra
+.text
+_testBoolOps:
+		# Method Prologue
+	sw    $ra, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	sw    $fp, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $fp, $sp, 8
+	subu  $sp, $sp, 4
+	lw    $a0, 8($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 4($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	and   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, 8($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	not   $a0, $t0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	or    $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -8($fp)
+	lw    $a0, -8($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $v0, 0($sp)		#POP
+	b     _testBoolOps_exit
+_testBoolOps_exit:
+		# Method Epilogue
+	move  $sp, $fp
+	lw    $ra, 0($fp)
+	lw    $fp, -4($fp)
+	jr    $ra
+main:
+		# Method Prologue
+	sw    $ra, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	sw    $fp, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $fp, $sp, 8
+	subu  $sp, $sp, 28
+.data
+._L28: .asciiz "========================================"
+.text
+	la    $a0, ._L28
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L29: .asciiz " COMPREHENSIVE TEST SUITE"
+.text
+	la    $a0, ._L29
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L30: .asciiz "========================================"
+.text
+	la    $a0, ._L30
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L31: .asciiz ""
+.text
+	la    $a0, ._L31
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L32: .asciiz "TEST 1: Variable Initialization"
+.text
+	la    $a0, ._L32
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L33: .asciiz "--------------------------------"
+.text
+	la    $a0, ._L33
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
@@ -146,11 +852,183 @@ main:	nop		#Start of main
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
 	lw    $a0, 0($sp)		#POP
+	sw    $a0, -8($fp)
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, _debug
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, _flag
+.data
+._L34: .asciiz "Global (expect 5):"
+.text
+	la    $a0, ._L34
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, _globalVal
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L35: .asciiz "Local (expect 10):"
+.text
+	la    $a0, ._L35
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -8($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L36: .asciiz "Debug (expect true):"
+.text
+	la    $a0, ._L36
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, _debug
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L37
+	la    $a0, .true_msg
+	li    $v0, 4
+	syscall
+	b     ._L38
+._L37:
+	la    $a0, .false_msg
+	li    $v0, 4
+	syscall
+._L38:
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L39: .asciiz "Flag (expect false):"
+.text
+	la    $a0, ._L39
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, _flag
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L40
+	la    $a0, .true_msg
+	li    $v0, 4
+	syscall
+	b     ._L41
+._L40:
+	la    $a0, .false_msg
+	li    $v0, 4
+	syscall
+._L41:
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L42: .asciiz ""
+.text
+	la    $a0, ._L42
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L43: .asciiz "TEST 2: Basic Arithmetic"
+.text
+	la    $a0, ._L43
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L44: .asciiz "------------------------"
+.text
+	la    $a0, ._L44
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 10
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 5
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _add
+	addu  $sp, $sp, 8
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
 	sw    $a0, -12($fp)
 .data
-._L5: .asciiz "Init Global (Erwarte 5):"
+._L45: .asciiz "10 + 5 (expect 15):"
 .text
-	la    $a0, ._L5
+	la    $a0, ._L45
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
@@ -160,7 +1038,151 @@ main:	nop		#Start of main
 	la    $a0, .newline
 	li    $v0, 4
 	syscall
-	lw    $a0, _globalVal
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 10
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 5
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _subtract
+	addu  $sp, $sp, 8
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+.data
+._L46: .asciiz "10 - 5 (expect 5):"
+.text
+	la    $a0, ._L46
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 10
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 5
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _multiply
+	addu  $sp, $sp, 8
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+.data
+._L47: .asciiz "10 * 5 (expect 50):"
+.text
+	la    $a0, ._L47
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 10
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 5
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _divide
+	addu  $sp, $sp, 8
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+.data
+._L48: .asciiz "10 / 5 (expect 2):"
+.text
+	la    $a0, ._L48
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 10
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 3
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _modulo
+	addu  $sp, $sp, 8
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+.data
+._L49: .asciiz "10 % 3 (expect 1):"
+.text
+	la    $a0, ._L49
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -12($fp)
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
@@ -171,9 +1193,182 @@ main:	nop		#Start of main
 	li    $v0, 4
 	syscall
 .data
-._L6: .asciiz "Init Local (Erwarte 10):"
+._L50: .asciiz ""
 .text
-	la    $a0, ._L6
+	la    $a0, ._L50
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L51: .asciiz "TEST 3: Complex Expressions"
+.text
+	la    $a0, ._L51
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L52: .asciiz "---------------------------"
+.text
+	la    $a0, ._L52
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 2
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 3
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 4
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	mul   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	add   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+.data
+._L53: .asciiz "2 + 3 * 4 (expect 14):"
+.text
+	la    $a0, ._L53
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 2
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 3
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	add   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 4
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	mul   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+.data
+._L54: .asciiz "(2 + 3) * 4 (expect 20):"
+.text
+	la    $a0, ._L54
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 100
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 10
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	div   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 5
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 2
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	mul   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	add   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+.data
+._L55: .asciiz "100 / 10 + 5 * 2 (expect 20):"
+.text
+	la    $a0, ._L55
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
@@ -196,7 +1391,7 @@ main:	nop		#Start of main
 	lw    $a0, _globalVal
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
-	lw    $a0, -12($fp)
+	lw    $a0, -8($fp)
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
@@ -220,9 +1415,9 @@ main:	nop		#Start of main
 	lw    $a0, 0($sp)		#POP
 	sw    $a0, _globalVal
 .data
-._L7: .asciiz "Rechenergebnis (Erwarte 52):"
+._L56: .asciiz "5 * 10 + 2 (expect 52):"
 .text
-	la    $a0, ._L7
+	la    $a0, ._L56
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
@@ -238,6 +1433,45 @@ main:	nop		#Start of main
 	addu  $sp, $sp, 4
 	lw    $a0, 0($sp)		#POP
 	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L57: .asciiz ""
+.text
+	la    $a0, ._L57
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L58: .asciiz "TEST 4: Function Calls"
+.text
+	la    $a0, ._L58
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L59: .asciiz "----------------------"
+.text
+	la    $a0, ._L59
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
 	syscall
 	la    $a0, .newline
 	li    $v0, 4
@@ -254,11 +1488,50 @@ main:	nop		#Start of main
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
 	lw    $a0, 0($sp)		#POP
+	sw    $a0, -8($fp)
+.data
+._L60: .asciiz "add(52, 5) (expect 57):"
+.text
+	la    $a0, ._L60
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -8($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 3
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 4
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 10
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _complexCalc
+	addu  $sp, $sp, 12
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
 	sw    $a0, -12($fp)
 .data
-._L8: .asciiz "Methodenaufruf add(52, 5) (Erwarte 57):"
+._L61: .asciiz "complexCalc(3, 4, 10) (expect 12 + 5 - 5 = 12):"
 .text
-	la    $a0, ._L8
+	la    $a0, ._L61
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
@@ -278,7 +1551,46 @@ main:	nop		#Start of main
 	la    $a0, .newline
 	li    $v0, 4
 	syscall
-	lw    $a0, -12($fp)
+.data
+._L62: .asciiz ""
+.text
+	la    $a0, ._L62
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L63: .asciiz "TEST 5: Boolean Logic"
+.text
+	la    $a0, ._L63
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L64: .asciiz "---------------------"
+.text
+	la    $a0, ._L64
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -8($fp)
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	jal   _check
@@ -289,9 +1601,9 @@ main:	nop		#Start of main
 	lw    $a0, 0($sp)		#POP
 	sw    $a0, -16($fp)
 .data
-._L9: .asciiz "Check > 0 (Erwarte true):"
+._L65: .asciiz "check(57) > 0 (expect true):"
 .text
-	la    $a0, ._L9
+	la    $a0, ._L65
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
@@ -306,23 +1618,43 @@ main:	nop		#Start of main
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
 	lw    $a0, 0($sp)		#POP
-	beqz  $a0, ._L10
+	beqz  $a0, ._L66
 	la    $a0, .true_msg
 	li    $v0, 4
 	syscall
-	b     ._L11
-._L10:
+	b     ._L67
+._L66:
 	la    $a0, .false_msg
 	li    $v0, 4
 	syscall
-._L11:
+._L67:
 	la    $a0, .newline
 	li    $v0, 4
 	syscall
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 5
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	sub   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _check
+	addu  $sp, $sp, 4
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -16($fp)
 .data
-._L12: .asciiz "If-Else Test:"
+._L68: .asciiz "check(-5) > 0 (expect false):"
 .text
-	la    $a0, ._L12
+	la    $a0, ._L68
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
@@ -337,11 +1669,33 @@ main:	nop		#Start of main
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
 	lw    $a0, 0($sp)		#POP
-	beqz  $a0, ._L13
+	beqz  $a0, ._L69
+	la    $a0, .true_msg
+	li    $v0, 4
+	syscall
+	b     ._L70
+._L69:
+	la    $a0, .false_msg
+	li    $v0, 4
+	syscall
+._L70:
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 10
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _isEven
+	addu  $sp, $sp, 4
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -16($fp)
 .data
-._L15: .asciiz "-> True-Zweig genommen (Richtig)"
+._L71: .asciiz "isEven(10) (expect true):"
 .text
-	la    $a0, ._L15
+	la    $a0, ._L71
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
@@ -351,12 +1705,38 @@ main:	nop		#Start of main
 	la    $a0, .newline
 	li    $v0, 4
 	syscall
-	b     ._L14
-._L13:
+	lw    $a0, -16($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L72
+	la    $a0, .true_msg
+	li    $v0, 4
+	syscall
+	b     ._L73
+._L72:
+	la    $a0, .false_msg
+	li    $v0, 4
+	syscall
+._L73:
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 7
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _isEven
+	addu  $sp, $sp, 4
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -16($fp)
 .data
-._L16: .asciiz "-> False-Zweig genommen (Falsch)"
+._L74: .asciiz "isEven(7) (expect false):"
 .text
-	la    $a0, ._L16
+	la    $a0, ._L74
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
@@ -366,11 +1746,28 @@ main:	nop		#Start of main
 	la    $a0, .newline
 	li    $v0, 4
 	syscall
-._L14:
+	lw    $a0, -16($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L75
+	la    $a0, .true_msg
+	li    $v0, 4
+	syscall
+	b     ._L76
+._L75:
+	la    $a0, .false_msg
+	li    $v0, 4
+	syscall
+._L76:
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
 .data
-._L17: .asciiz "Countdown (57 bis 55):"
+._L77: .asciiz ""
 .text
-	la    $a0, ._L17
+	la    $a0, ._L77
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
@@ -380,40 +1777,932 @@ main:	nop		#Start of main
 	la    $a0, .newline
 	li    $v0, 4
 	syscall
-	li    $a0, 54
+.data
+._L78: .asciiz "TEST 6: Comparison Operators"
+.text
+	la    $a0, ._L78
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
 	lw    $a0, 0($sp)		#POP
-	sw    $a0, -20($fp)
-._L18:		#While Start
-	lw    $a0, -12($fp)
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L79: .asciiz "----------------------------"
+.text
+	la    $a0, ._L79
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
-	lw    $a0, -20($fp)
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 5
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 10
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
 	lw    $t1, 0($sp)		#POP
 	addu  $sp, $sp, 4
 	lw    $t0, 0($sp)		#POP
-	addu  $sp, $sp, 4
-	lw    $t1, 0($sp)		#POP
-	addu  $sp, $sp, 4
-	lw    $t0, 0($sp)		#POP
-	bgt   $t0, $t1, ._L20
+	blt   $t0, $t1, ._L80
 	li    $a0, 0
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
-	b     ._L21
-._L20:
+	b     ._L81
+._L80:
 	li    $a0, -1
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
-._L21:
+._L81:
 	addu  $sp, $sp, 4
 	lw    $a0, 0($sp)		#POP
-	beqz  $a0, ._L19
+	sw    $a0, -16($fp)
+.data
+._L82: .asciiz "5 < 10 (expect true):"
+.text
+	la    $a0, ._L82
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -16($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L83
+	la    $a0, .true_msg
+	li    $v0, 4
+	syscall
+	b     ._L84
+._L83:
+	la    $a0, .false_msg
+	li    $v0, 4
+	syscall
+._L84:
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 10
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 5
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	blt   $t0, $t1, ._L85
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	b     ._L86
+._L85:
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+._L86:
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -16($fp)
+.data
+._L87: .asciiz "10 < 5 (expect false):"
+.text
+	la    $a0, ._L87
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -16($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L88
+	la    $a0, .true_msg
+	li    $v0, 4
+	syscall
+	b     ._L89
+._L88:
+	la    $a0, .false_msg
+	li    $v0, 4
+	syscall
+._L89:
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 10
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 10
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	ble   $t0, $t1, ._L90
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	b     ._L91
+._L90:
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+._L91:
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -16($fp)
+.data
+._L92: .asciiz "10 <= 10 (expect true):"
+.text
+	la    $a0, ._L92
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -16($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L93
+	la    $a0, .true_msg
+	li    $v0, 4
+	syscall
+	b     ._L94
+._L93:
+	la    $a0, .false_msg
+	li    $v0, 4
+	syscall
+._L94:
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 10
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 5
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	bgt   $t0, $t1, ._L95
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	b     ._L96
+._L95:
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+._L96:
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -16($fp)
+.data
+._L97: .asciiz "10 > 5 (expect true):"
+.text
+	la    $a0, ._L97
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -16($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L98
+	la    $a0, .true_msg
+	li    $v0, 4
+	syscall
+	b     ._L99
+._L98:
+	la    $a0, .false_msg
+	li    $v0, 4
+	syscall
+._L99:
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 5
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 10
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	bge   $t0, $t1, ._L100
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	b     ._L101
+._L100:
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+._L101:
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -16($fp)
+.data
+._L102: .asciiz "5 >= 10 (expect false):"
+.text
+	la    $a0, ._L102
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -16($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L103
+	la    $a0, .true_msg
+	li    $v0, 4
+	syscall
+	b     ._L104
+._L103:
+	la    $a0, .false_msg
+	li    $v0, 4
+	syscall
+._L104:
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 10
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 10
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	beq   $t0, $t1, ._L105
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	b     ._L106
+._L105:
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+._L106:
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -16($fp)
+.data
+._L107: .asciiz "10 == 10 (expect true):"
+.text
+	la    $a0, ._L107
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -16($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L108
+	la    $a0, .true_msg
+	li    $v0, 4
+	syscall
+	b     ._L109
+._L108:
+	la    $a0, .false_msg
+	li    $v0, 4
+	syscall
+._L109:
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 10
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 5
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	bne   $t0, $t1, ._L110
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	b     ._L111
+._L110:
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+._L111:
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -16($fp)
+.data
+._L112: .asciiz "10 != 5 (expect true):"
+.text
+	la    $a0, ._L112
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -16($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L113
+	la    $a0, .true_msg
+	li    $v0, 4
+	syscall
+	b     ._L114
+._L113:
+	la    $a0, .false_msg
+	li    $v0, 4
+	syscall
+._L114:
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L115: .asciiz ""
+.text
+	la    $a0, ._L115
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L116: .asciiz "TEST 7: Boolean Operators"
+.text
+	la    $a0, ._L116
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L117: .asciiz "-------------------------"
+.text
+	la    $a0, ._L117
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	and   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -16($fp)
+.data
+._L118: .asciiz "true && true (expect true):"
+.text
+	la    $a0, ._L118
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -16($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L119
+	la    $a0, .true_msg
+	li    $v0, 4
+	syscall
+	b     ._L120
+._L119:
+	la    $a0, .false_msg
+	li    $v0, 4
+	syscall
+._L120:
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	and   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -16($fp)
+.data
+._L121: .asciiz "true && false (expect false):"
+.text
+	la    $a0, ._L121
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -16($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L122
+	la    $a0, .true_msg
+	li    $v0, 4
+	syscall
+	b     ._L123
+._L122:
+	la    $a0, .false_msg
+	li    $v0, 4
+	syscall
+._L123:
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	or    $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -16($fp)
+.data
+._L124: .asciiz "true || false (expect true):"
+.text
+	la    $a0, ._L124
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -16($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L125
+	la    $a0, .true_msg
+	li    $v0, 4
+	syscall
+	b     ._L126
+._L125:
+	la    $a0, .false_msg
+	li    $v0, 4
+	syscall
+._L126:
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	or    $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -16($fp)
+.data
+._L127: .asciiz "false || false (expect false):"
+.text
+	la    $a0, ._L127
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -16($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L128
+	la    $a0, .true_msg
+	li    $v0, 4
+	syscall
+	b     ._L129
+._L128:
+	la    $a0, .false_msg
+	li    $v0, 4
+	syscall
+._L129:
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	not   $a0, $t0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -16($fp)
+.data
+._L130: .asciiz "!false (expect true):"
+.text
+	la    $a0, ._L130
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -16($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L131
+	la    $a0, .true_msg
+	li    $v0, 4
+	syscall
+	b     ._L132
+._L131:
+	la    $a0, .false_msg
+	li    $v0, 4
+	syscall
+._L132:
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	not   $a0, $t0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -16($fp)
+.data
+._L133: .asciiz "!true (expect false):"
+.text
+	la    $a0, ._L133
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -16($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L134
+	la    $a0, .true_msg
+	li    $v0, 4
+	syscall
+	b     ._L135
+._L134:
+	la    $a0, .false_msg
+	li    $v0, 4
+	syscall
+._L135:
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L136: .asciiz ""
+.text
+	la    $a0, ._L136
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L137: .asciiz "TEST 8: If-Else Statements"
+.text
+	la    $a0, ._L137
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L138: .asciiz "--------------------------"
+.text
+	la    $a0, ._L138
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -8($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 50
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	bgt   $t0, $t1, ._L141
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	b     ._L142
+._L141:
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+._L142:
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L139
+.data
+._L143: .asciiz "localVal > 50: TRUE (correct)"
+.text
+	la    $a0, ._L143
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	b     ._L140
+._L139:
+.data
+._L144: .asciiz "localVal > 50: FALSE (error)"
+.text
+	la    $a0, ._L144
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+._L140:
+	lw    $a0, -8($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 50
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	blt   $t0, $t1, ._L147
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	b     ._L148
+._L147:
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+._L148:
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L145
+.data
+._L149: .asciiz "localVal < 50: TRUE (error)"
+.text
+	la    $a0, ._L149
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	b     ._L146
+._L145:
+.data
+._L150: .asciiz "localVal < 50: FALSE (correct)"
+.text
+	la    $a0, ._L150
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+._L146:
+.data
+._L151: .asciiz ""
+.text
+	la    $a0, ._L151
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L152: .asciiz "TEST 9: Nested If-Else"
+.text
+	la    $a0, ._L152
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L153: .asciiz "----------------------"
+.text
+	la    $a0, ._L153
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 10
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 5
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 8
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _compareThree
+	addu  $sp, $sp, 12
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+.data
+._L154: .asciiz "max(10, 5, 8) (expect 10):"
+.text
+	la    $a0, ._L154
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
 	lw    $a0, -12($fp)
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
@@ -424,7 +2713,177 @@ main:	nop		#Start of main
 	la    $a0, .newline
 	li    $v0, 4
 	syscall
+	li    $a0, 3
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 15
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 8
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _compareThree
+	addu  $sp, $sp, 12
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+.data
+._L155: .asciiz "max(3, 15, 8) (expect 15):"
+.text
+	la    $a0, ._L155
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
 	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 3
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 5
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 20
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _compareThree
+	addu  $sp, $sp, 12
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+.data
+._L156: .asciiz "max(3, 5, 20) (expect 20):"
+.text
+	la    $a0, ._L156
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L157: .asciiz ""
+.text
+	la    $a0, ._L157
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L158: .asciiz "TEST 10: While Loop"
+.text
+	la    $a0, ._L158
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L159: .asciiz "-------------------"
+.text
+	la    $a0, ._L159
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L160: .asciiz "Countdown from 5 to 1:"
+.text
+	la    $a0, ._L160
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 5
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -24($fp)
+._L161:		#While Start
+	lw    $a0, -24($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	bgt   $t0, $t1, ._L163
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	b     ._L164
+._L163:
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+._L164:
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L162
+	lw    $a0, -24($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -24($fp)
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	li    $a0, 1
@@ -439,13 +2898,885 @@ main:	nop		#Start of main
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
 	lw    $a0, 0($sp)		#POP
-	sw    $a0, -12($fp)
-	b     ._L18
-._L19:		#While End
+	sw    $a0, -24($fp)
+	b     ._L161
+._L162:		#While End
 .data
-._L22: .asciiz " END TEST "
+._L165: .asciiz ""
 .text
-	la    $a0, ._L22
+	la    $a0, ._L165
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L166: .asciiz "TEST 11: Complex While Loop"
+.text
+	la    $a0, ._L166
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L167: .asciiz "---------------------------"
+.text
+	la    $a0, ._L167
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L168: .asciiz "Sum 1 to 10 (expect 55):"
+.text
+	la    $a0, ._L168
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -24($fp)
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+._L169:		#While Start
+	lw    $a0, -24($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 10
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	ble   $t0, $t1, ._L171
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	b     ._L172
+._L171:
+	li    $a0, -1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+._L172:
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	beqz  $a0, ._L170
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	lw    $a0, -24($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	add   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+	lw    $a0, -24($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	add   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -24($fp)
+	b     ._L169
+._L170:		#While End
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L173: .asciiz ""
+.text
+	la    $a0, ._L173
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L174: .asciiz "TEST 12: Recursive Factorial"
+.text
+	la    $a0, ._L174
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L175: .asciiz "----------------------------"
+.text
+	la    $a0, ._L175
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 5
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _factorial
+	addu  $sp, $sp, 4
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+.data
+._L176: .asciiz "5! (expect 120):"
+.text
+	la    $a0, ._L176
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 6
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _factorial
+	addu  $sp, $sp, 4
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+.data
+._L177: .asciiz "6! (expect 720):"
+.text
+	la    $a0, ._L177
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _factorial
+	addu  $sp, $sp, 4
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+.data
+._L178: .asciiz "1! (expect 1):"
+.text
+	la    $a0, ._L178
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L179: .asciiz ""
+.text
+	la    $a0, ._L179
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L180: .asciiz "TEST 13: Recursive Fibonacci"
+.text
+	la    $a0, ._L180
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L181: .asciiz "----------------------------"
+.text
+	la    $a0, ._L181
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 7
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _fibonacci
+	addu  $sp, $sp, 4
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+.data
+._L182: .asciiz "fib(7) (expect 13):"
+.text
+	la    $a0, ._L182
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 10
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _fibonacci
+	addu  $sp, $sp, 4
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+.data
+._L183: .asciiz "fib(10) (expect 55):"
+.text
+	la    $a0, ._L183
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L184: .asciiz ""
+.text
+	la    $a0, ._L184
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L185: .asciiz "TEST 14: Void Functions"
+.text
+	la    $a0, ._L185
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L186: .asciiz "-----------------------"
+.text
+	la    $a0, ._L186
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 100
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, _globalVal
+.data
+._L187: .asciiz "Initial globalVal (expect 100):"
+.text
+	la    $a0, ._L187
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, _globalVal
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	jal   _incrementGlobal
+.data
+._L188: .asciiz "After incrementGlobal() (expect 101):"
+.text
+	la    $a0, ._L188
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, _globalVal
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	jal   _incrementGlobal
+	jal   _incrementGlobal
+.data
+._L189: .asciiz "After 2 more increments (expect 103):"
+.text
+	la    $a0, ._L189
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, _globalVal
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 42
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _setCounter
+	addu  $sp, $sp, 4
+.data
+._L190: .asciiz "Counter after setCounter(42) (expect 42):"
+.text
+	la    $a0, ._L190
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, _counter
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L191: .asciiz ""
+.text
+	la    $a0, ._L191
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L192: .asciiz "TEST 15: Negative Numbers"
+.text
+	la    $a0, ._L192
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L193: .asciiz "-------------------------"
+.text
+	la    $a0, ._L193
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 10
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	sub   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+.data
+._L194: .asciiz "-10 (expect -10):"
+.text
+	la    $a0, ._L194
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 5
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 15
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _subtract
+	addu  $sp, $sp, 8
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+.data
+._L195: .asciiz "5 - 15 (expect -10):"
+.text
+	la    $a0, ._L195
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 3
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	sub   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 4
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _multiply
+	addu  $sp, $sp, 8
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+.data
+._L196: .asciiz "-3 * 4 (expect -12):"
+.text
+	la    $a0, ._L196
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L197: .asciiz ""
+.text
+	la    $a0, ._L197
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L198: .asciiz "TEST 16: Edge Cases"
+.text
+	la    $a0, ._L198
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L199: .asciiz "-------------------"
+.text
+	la    $a0, ._L199
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 1000
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	mul   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+.data
+._L200: .asciiz "0 * 1000 (expect 0):"
+.text
+	la    $a0, ._L200
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 1000
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 1000
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $t1, 0($sp)		#POP
+	addu  $sp, $sp, 4
+	lw    $t0, 0($sp)		#POP
+	div   $a0, $t0, $t1
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+.data
+._L201: .asciiz "1000 / 1000 (expect 1):"
+.text
+	la    $a0, ._L201
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	li    $a0, 0
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	jal   _add
+	addu  $sp, $sp, 8
+	sw    $v0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	sw    $a0, -12($fp)
+.data
+._L202: .asciiz "0 + 0 (expect 0):"
+.text
+	la    $a0, ._L202
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+	lw    $a0, -12($fp)
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 1
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L203: .asciiz ""
+.text
+	la    $a0, ._L203
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L204: .asciiz "========================================"
+.text
+	la    $a0, ._L204
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L205: .asciiz " ALL TESTS COMPLETED"
+.text
+	la    $a0, ._L205
+	sw    $a0, 0($sp)		#PUSH
+	subu  $sp, $sp, 4
+	addu  $sp, $sp, 4
+	lw    $a0, 0($sp)		#POP
+	li    $v0, 4
+	syscall
+	la    $a0, .newline
+	li    $v0, 4
+	syscall
+.data
+._L206: .asciiz "========================================"
+.text
+	la    $a0, ._L206
 	sw    $a0, 0($sp)		#PUSH
 	subu  $sp, $sp, 4
 	addu  $sp, $sp, 4
@@ -457,10 +3788,8 @@ main:	nop		#Start of main
 	syscall
 _main_exit:
 		# Method Epilogue
-	subu  $sp, $fp, 8
-	addu  $sp, $sp, 4
-	lw    $fp, 0($sp)		#POP
-	addu  $sp, $sp, 4
-	lw    $ra, 0($sp)		#POP
+	move  $sp, $fp
+	lw    $ra, 0($fp)
+	lw    $fp, -4($fp)
 	li    $v0, 10
 	syscall

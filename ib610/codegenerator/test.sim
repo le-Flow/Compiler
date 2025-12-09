@@ -1,14 +1,33 @@
 public class TestOutput {
     
-    // Globale Variablen müssen 'static' sein
+    // Global variables
     static int globalVal;
+    static int counter;
     static boolean debug;
+    static boolean flag;
 
-    // Methoden müssen 'public static' sein
+    // Basic arithmetic function
     public static int add(int a, int b) {
         return a + b;
     }
 
+    public static int subtract(int a, int b) {
+        return a - b;
+    }
+
+    public static int multiply(int a, int b) {
+        return a * b;
+    }
+
+    public static int divide(int a, int b) {
+        return a / b;
+    }
+
+    public static int modulo(int a, int b) {
+        return a % b;
+    }
+
+    // Boolean logic function
     public static boolean check(int val) {
         if (val > 0) {
             return true;
@@ -17,55 +36,403 @@ public class TestOutput {
         }
     }
 
-    // Main Methode
+    public static boolean isEven(int n) {
+        int remainder;
+        remainder = n % 2;
+        if (remainder == 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    // Recursive factorial
+    public static int factorial(int n) {
+        if (n <= 1) {
+            return 1;
+        } else {
+            return n * factorial(n - 1);
+        }
+    }
+
+    // Fibonacci (recursive)
+    public static int fibonacci(int n) {
+        if (n <= 1) {
+            return n;
+        } else {
+            return fibonacci(n - 1) + fibonacci(n - 2);
+        }
+    }
+
+    // Complex arithmetic test
+    public static int complexCalc(int a, int b, int c) {
+        int temp1;
+        int temp2;
+        int result;
+        
+        temp1 = a * b;
+        temp2 = c / 2;
+        result = temp1 + temp2 - 5;
+        
+        return result;
+    }
+
+    // Test void function with side effects
+    public static void incrementGlobal() {
+        globalVal = globalVal + 1;
+    }
+
+    public static void setCounter(int val) {
+        counter = val;
+    }
+
+    // Nested if-else test
+    public static int compareThree(int a, int b, int c) {
+        if (a > b) {
+            if (a > c) {
+                return a;
+            } else {
+                return c;
+            }
+        } else {
+            if (b > c) {
+                return b;
+            } else {
+                return c;
+            }
+        }
+    }
+
+    // Boolean operations test
+    public static boolean testBoolOps(boolean a, boolean b) {
+        boolean result;
+        result = a && b || !a;
+        return result;
+    }
+
+    // Main test suite
     public static void main() {
-        // Lokale Variablen (innerhalb von Methoden) haben KEINE Modifier
         int localVal;
+        int result;
         boolean res;
-        int limit; 
+        int limit;
+        int i;
+        int temp;
+        boolean boolTest;
 
-        print(" START TEST ");
+        print("========================================");
+        print(" COMPREHENSIVE TEST SUITE");
+        print("========================================");
 
-        // 1. Initialisierung
+        // Test 1: Initialization
+        print("");
+        print("TEST 1: Variable Initialization");
+        print("--------------------------------");
         globalVal = 5;
         localVal = 10;
+        debug = true;
+        flag = false;
         
-        print("Init Global (Erwarte 5):");
+        print("Global (expect 5):");
         print(globalVal);
-        print("Init Local (Erwarte 10):");
+        print("Local (expect 10):");
         print(localVal);
+        print("Debug (expect true):");
+        print(debug);
+        print("Flag (expect false):");
+        print(flag);
+
+        // Test 2: Basic Arithmetic
+        print("");
+        print("TEST 2: Basic Arithmetic");
+        print("------------------------");
         
-        // 2. Arithmetik
-        globalVal = globalVal * localVal + 2; 
-        print("Rechenergebnis (Erwarte 52):");
+        result = add(10, 5);
+        print("10 + 5 (expect 15):");
+        print(result);
+        
+        result = subtract(10, 5);
+        print("10 - 5 (expect 5):");
+        print(result);
+        
+        result = multiply(10, 5);
+        print("10 * 5 (expect 50):");
+        print(result);
+        
+        result = divide(10, 5);
+        print("10 / 5 (expect 2):");
+        print(result);
+        
+        result = modulo(10, 3);
+        print("10 % 3 (expect 1):");
+        print(result);
+
+        // Test 3: Complex Expressions
+        print("");
+        print("TEST 3: Complex Expressions");
+        print("---------------------------");
+        
+        result = 2 + 3 * 4;
+        print("2 + 3 * 4 (expect 14):");
+        print(result);
+        
+        result = (2 + 3) * 4;
+        print("(2 + 3) * 4 (expect 20):");
+        print(result);
+        
+        result = 100 / 10 + 5 * 2;
+        print("100 / 10 + 5 * 2 (expect 20):");
+        print(result);
+        
+        globalVal = globalVal * localVal + 2;
+        print("5 * 10 + 2 (expect 52):");
         print(globalVal);
 
-        // 3. Methodenaufruf
+        // Test 4: Function Calls
+        print("");
+        print("TEST 4: Function Calls");
+        print("----------------------");
+        
         localVal = add(globalVal, 5);
-        print("Methodenaufruf add(52, 5) (Erwarte 57):");
+        print("add(52, 5) (expect 57):");
         print(localVal);
         
-        // 4. Logik
+        result = complexCalc(3, 4, 10);
+        print("complexCalc(3, 4, 10) (expect 12 + 5 - 5 = 12):");
+        print(result);
+
+        // Test 5: Boolean Logic
+        print("");
+        print("TEST 5: Boolean Logic");
+        print("---------------------");
+        
         res = check(localVal);
-        print("Check > 0 (Erwarte true):");
+        print("check(57) > 0 (expect true):");
+        print(res);
+        
+        res = check(0 - 5);
+        print("check(-5) > 0 (expect false):");
+        print(res);
+        
+        res = isEven(10);
+        print("isEven(10) (expect true):");
+        print(res);
+        
+        res = isEven(7);
+        print("isEven(7) (expect false):");
         print(res);
 
-        print("If-Else Test:");
-        if (res) {
-            print("-> True-Zweig genommen (Richtig)");
+        // Test 6: Comparison Operators
+        print("");
+        print("TEST 6: Comparison Operators");
+        print("----------------------------");
+        
+        res = 5 < 10;
+        print("5 < 10 (expect true):");
+        print(res);
+        
+        res = 10 < 5;
+        print("10 < 5 (expect false):");
+        print(res);
+        
+        res = 10 <= 10;
+        print("10 <= 10 (expect true):");
+        print(res);
+        
+        res = 10 > 5;
+        print("10 > 5 (expect true):");
+        print(res);
+        
+        res = 5 >= 10;
+        print("5 >= 10 (expect false):");
+        print(res);
+        
+        res = 10 == 10;
+        print("10 == 10 (expect true):");
+        print(res);
+        
+        res = 10 != 5;
+        print("10 != 5 (expect true):");
+        print(res);
+
+        // Test 7: Boolean Operators
+        print("");
+        print("TEST 7: Boolean Operators");
+        print("-------------------------");
+        
+        res = true && true;
+        print("true && true (expect true):");
+        print(res);
+        
+        res = true && false;
+        print("true && false (expect false):");
+        print(res);
+        
+        res = true || false;
+        print("true || false (expect true):");
+        print(res);
+        
+        res = false || false;
+        print("false || false (expect false):");
+        print(res);
+        
+        res = !false;
+        print("!false (expect true):");
+        print(res);
+        
+        res = !true;
+        print("!true (expect false):");
+        print(res);
+
+        // Test 8: If-Else
+        print("");
+        print("TEST 8: If-Else Statements");
+        print("--------------------------");
+        
+        if (localVal > 50) {
+            print("localVal > 50: TRUE (correct)");
         } else {
-            print("-> False-Zweig genommen (Falsch)");
+            print("localVal > 50: FALSE (error)");
+        }
+        
+        if (localVal < 50) {
+            print("localVal < 50: TRUE (error)");
+        } else {
+            print("localVal < 50: FALSE (correct)");
         }
 
-        // 5. While-Schleife
-        print("Countdown (57 bis 55):");
-        limit = 54;
+        // Test 9: Nested If-Else
+        print("");
+        print("TEST 9: Nested If-Else");
+        print("----------------------");
         
-        while (localVal > limit) {
-            print(localVal);
-            localVal = localVal - 1;
+        result = compareThree(10, 5, 8);
+        print("max(10, 5, 8) (expect 10):");
+        print(result);
+        
+        result = compareThree(3, 15, 8);
+        print("max(3, 15, 8) (expect 15):");
+        print(result);
+        
+        result = compareThree(3, 5, 20);
+        print("max(3, 5, 20) (expect 20):");
+        print(result);
+
+        // Test 10: While Loop
+        print("");
+        print("TEST 10: While Loop");
+        print("-------------------");
+        print("Countdown from 5 to 1:");
+        
+        i = 5;
+        while (i > 0) {
+            print(i);
+            i = i - 1;
         }
+
+        // Test 11: While Loop with Complex Condition
+        print("");
+        print("TEST 11: Complex While Loop");
+        print("---------------------------");
+        print("Sum 1 to 10 (expect 55):");
         
-        print(" END TEST ");
+        i = 1;
+        result = 0;
+        while (i <= 10) {
+            result = result + i;
+            i = i + 1;
+        }
+        print(result);
+
+        // Test 12: Recursion - Factorial
+        print("");
+        print("TEST 12: Recursive Factorial");
+        print("----------------------------");
+        
+        result = factorial(5);
+        print("5! (expect 120):");
+        print(result);
+        
+        result = factorial(6);
+        print("6! (expect 720):");
+        print(result);
+        
+        result = factorial(1);
+        print("1! (expect 1):");
+        print(result);
+
+        // Test 13: Recursion - Fibonacci
+        print("");
+        print("TEST 13: Recursive Fibonacci");
+        print("----------------------------");
+        
+        result = fibonacci(7);
+        print("fib(7) (expect 13):");
+        print(result);
+        
+        result = fibonacci(10);
+        print("fib(10) (expect 55):");
+        print(result);
+
+        // Test 14: Void Functions with Side Effects
+        print("");
+        print("TEST 14: Void Functions");
+        print("-----------------------");
+        
+        globalVal = 100;
+        print("Initial globalVal (expect 100):");
+        print(globalVal);
+        
+        incrementGlobal();
+        print("After incrementGlobal() (expect 101):");
+        print(globalVal);
+        
+        incrementGlobal();
+        incrementGlobal();
+        print("After 2 more increments (expect 103):");
+        print(globalVal);
+        
+        setCounter(42);
+        print("Counter after setCounter(42) (expect 42):");
+        print(counter);
+
+        // Test 15: Negative Numbers
+        print("");
+        print("TEST 15: Negative Numbers");
+        print("-------------------------");
+        
+        result = 0 - 10;
+        print("-10 (expect -10):");
+        print(result);
+        
+        result = subtract(5, 15);
+        print("5 - 15 (expect -10):");
+        print(result);
+        
+        result = multiply(0 - 3, 4);
+        print("-3 * 4 (expect -12):");
+        print(result);
+
+        // Test 16: Edge Cases
+        print("");
+        print("TEST 16: Edge Cases");
+        print("-------------------");
+        
+        result = 0 * 1000;
+        print("0 * 1000 (expect 0):");
+        print(result);
+        
+        result = 1000 / 1000;
+        print("1000 / 1000 (expect 1):");
+        print(result);
+        
+        result = add(0, 0);
+        print("0 + 0 (expect 0):");
+        print(result);
+
+        print("");
+        print("========================================");
+        print(" ALL TESTS COMPLETED");
+        print("========================================");
     }
 }

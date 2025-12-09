@@ -160,10 +160,6 @@ public class Codegen {
         String trueLab = nextLabel();
         String doneLab = nextLabel();
         
-        // FIX: Values must be popped to registers first!
-        genPop(T1); // Right side
-        genPop(T0); // Left side
-        
         generate(op, T0, T1, trueLab); 
         
         // Case: False
