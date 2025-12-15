@@ -31,7 +31,6 @@ public class P5 {
         // 3. Open output file for MIPS code
         PrintWriter outFile = null;
         try {
-            // Wir nutzen hier direkt PrintWriter, um sicherzugehen
             outFile = new PrintWriter(new FileOutputStream(args[1]));
         } catch (IOException ex) {
             System.err.println("File " + args[1] + " could not be opened.");
@@ -52,7 +51,6 @@ public class P5 {
         }
 
         // 5. Semantic Analysis & Code Gen
-        // Wir holen uns den Wurzelknoten des AST (ProgramNode)
         ProgramNode program = (ProgramNode) root.value;
 
         // PASS 1: Name Analysis (Symboltabelle aufbauen)
@@ -70,14 +68,12 @@ public class P5 {
         program.checkTypes();
 
         // PASS 3: Code Generation
-        // Wird nur ausgeführt, wenn vorher keine fatalen Fehler den Prozess gestoppt haben.
-        //
         System.out.println("Generating MIPS code to " + args[1] + "...");
         
-        Codegen.init(outFile); // Codegen mit dem Writer verbinden
-        program.codeGen();     // Start der Rekursion
-        
-        outFile.close();       // WICHTIG: Puffer leeren und Datei schließen!
+        Codegen.init(outFile); 
+        program.codeGen();     
+
+        outFile.close();
         
         System.out.println("Done.");
     }

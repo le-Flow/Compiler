@@ -1,10 +1,7 @@
 import java.io.*;
 
 public class Codegen {
-    // file into which generated code is written
     public static PrintWriter p = null;
-
-    // values of true and false
     public static final String TRUE = "-1";
     public static final String FALSE = "0";
 
@@ -18,10 +15,7 @@ public class Codegen {
     public static final String T1 = "$t1"; // Temp 1
     public static final String ACC = "$a0"; // Accumulator
 
-    // for pretty printing generated code
     private static final int MAXLEN = 4;
-
-    // for generating labels
     private static int currLabel = 0;
 
     public static void init(PrintWriter pw) {
@@ -102,7 +96,7 @@ public class Codegen {
     // Label Helpers
     // **********************************************************************
 
-    // Used by AST (legacy call support)
+    // Used by AST.java
     public static void generateLabel(String label) {
         genLabel(label, "");
     }
@@ -112,8 +106,7 @@ public class Codegen {
         if (comment != "") p.print("\t\t#" + comment);
         p.println();
     }
-    
-    // THIS WAS MISSING: The overload required by ast.java
+
     public static void genLabel(String label) {
         genLabel(label, "");
     }
@@ -142,8 +135,7 @@ public class Codegen {
     }
 
     // **********************************************************************
-    // NEW: Generic Binary Operation
-    // Use this in Parser for: ADD, SUB, MUL, DIV
+    // Generic Binary Operation
     // **********************************************************************
     public static void genBinaryOp(String opcode) {
         genPop(T1); // Right operand
@@ -153,8 +145,7 @@ public class Codegen {
     }
 
     // **********************************************************************
-    // genCompare (FIXED)
-    // Now correctly pops values from stack before comparing
+    // genCompare
     // **********************************************************************
     public static void genCompare(String op) {
         String trueLab = nextLabel();
@@ -176,11 +167,10 @@ public class Codegen {
     }              
 
     // **********************************************************************
-    // NEW: Method Epilogue
-    // Call this at the end of every method in your Parser
+    // Method Epilogue
     // **********************************************************************
     public static void genEpilogue(String methodName) {
-        genLabel(methodName + "_exit"); // Using genLabel here is safer now
+        genLabel(methodName + "_exit");
         
         if (methodName.equals("main")) {
             // Main must invoke syscall 10 to exit correctly
